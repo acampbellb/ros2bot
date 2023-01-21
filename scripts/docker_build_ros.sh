@@ -11,9 +11,6 @@ source scripts/opencv_version.sh
 echo "ROS_DISTRO:   $ROS_DISTRO"
 echo "ROS_PACKAGE:  $ROS_PACKAGE"
 
-BUILD_DISTRO=$ROS_DISTRO
-BUILD_PACKAGES=$ROS_PACKAGE
-
 build_ros()
 {
 	local distro=$1

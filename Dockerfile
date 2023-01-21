@@ -234,8 +234,9 @@ ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 #
 # create workspace
 #
-USER ${USERNAME}
-ENV HOME /home/${USERNAME}
+ENV USER ros
+USER ros
+ENV HOME /home/${USER}
 RUN mkdir -p ${HOME}/ros_ws/src
 WORKDIR ${HOME}/ros_ws
 /bin/bash -c "source source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
