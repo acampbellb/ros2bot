@@ -2,9 +2,9 @@
 # installs ROS2 from source as documented in the procedure:
 # https://index.ros.org/doc/ros2/installation/foxy/linux-development-setup/
 #
+
 ARG BASE_IMAGE=nvcr.io/nvidia/l4t-base:r35.1.0
 FROM ${BASE_IMAGE}
-
 ARG ROS_PKG=ros_base
 ENV ROS_DISTRO=foxy
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
@@ -16,22 +16,27 @@ ENV ROS_PYTHON_VERSION=3
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SHELL /bin/bash
 ENV PATH=/opt/ros/${ROS_DISTRO}/bin:$PATH
-
 SHELL ["/bin/bash", "-c"] 
-
 WORKDIR /tmp
 
+#
 # change the locale from POSIX to UTF-8
+#
+
 RUN locale-gen en_US en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV PYTHONIOENCODING=utf-8
 
+#
 # set Python3 as default
+#
+
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 #
 # add the ROS deb repo to the apt sources list
 #
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
 		curl \
@@ -39,6 +44,7 @@ RUN apt-get update && \
 		gnupg2 \
 		lsb-release \
 		ca-certificates \
+        apt-utils \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -48,6 +54,7 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/r
 #
 # install development packages
 #
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         bash-completion \
@@ -75,7 +82,10 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
+#
 # install some pip packages needed for testing
+#
+
 RUN python3 -m pip install -U \
 		argcomplete \
 		flake8-blind-except \
@@ -93,6 +103,7 @@ RUN python3 -m pip install -U \
 #
 # create a non-root user
 #
+
 ARG USERNAME=ros
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
@@ -111,9 +122,9 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # 
 # install OpenCV (with CUDA)
 #
+
 ARG OPENCV_URL=https://nvidia.box.com/shared/static/5v89u6g5rb62fpz4lh0rz531ajo2t5ef.gz
 ARG OPENCV_DEB=OpenCV-4.5.0-aarch64.tar.gz
-
 COPY scripts/opencv_install.sh /tmp/opencv_install.sh
 RUN cd /tmp && ./opencv_install.sh ${OPENCV_URL} ${OPENCV_DEB}
 
@@ -121,6 +132,7 @@ RUN cd /tmp && ./opencv_install.sh ${OPENCV_URL} ${OPENCV_DEB}
 # upgrade cmake - https://stackoverflow.com/a/56690743
 # this is needed to build some of the ROS2 packages
 #
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
 		  software-properties-common \
@@ -142,15 +154,17 @@ RUN wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key
 RUN cmake --version
 
 #
-# remove other versions of Python3
-# workaround for 'Could NOT find Python3 (missing: Python3_INCLUDE_DIRS Python3_LIBRARIES'
+# remove other versions of Python3 workaround for 'Could NOT find Python3 
+# (missing: Python3_INCLUDE_DIRS Python3_LIBRARIES'
 #
+
 RUN apt purge -y python3.9 libpython3.9* || echo "python3.9 not found, skipping removal" && \
     ls -ll /usr/bin/python*
 
 # 
 # compile yaml-cpp-0.6, which some ROS packages may use (but is not in the 18.04 apt repo)
 #
+
 RUN git clone --branch yaml-cpp-0.6.0 https://github.com/jbeder/yaml-cpp yaml-cpp-0.6 && \
     cd yaml-cpp-0.6 && \
     mkdir build && \
@@ -163,6 +177,7 @@ RUN git clone --branch yaml-cpp-0.6.0 https://github.com/jbeder/yaml-cpp yaml-cp
 # 
 # download/build ROS from source
 #
+
 RUN mkdir -p ${ROS_ROOT}/src && \
     cd ${ROS_ROOT} && \    
     # https://answers.ros.org/question/325245/minimal-ros2-installation/?answer=325249#post-id-325249
@@ -229,11 +244,13 @@ RUN mkdir -p ${ROS_ROOT}/src && \
 # Set the default DDS middleware to cyclonedds
 # https://github.com/ros2/rclcpp/issues/1335
 #
+
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 #
 # create workspace
 #
+
 ENV USER ros
 USER ros
 ENV HOME /home/${USER}
@@ -247,6 +264,7 @@ ENV DEBIAN_FRONTEND=
 # 
 # setup entrypoint
 #
+
 COPY ./packages/ros_entrypoint.sh /ros_entrypoint.sh
 
 RUN sed -i \
