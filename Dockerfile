@@ -239,7 +239,8 @@ USER ros
 ENV HOME /home/${USER}
 RUN mkdir -p ${HOME}/ros_ws/src
 WORKDIR ${HOME}/ros_ws
-/bin/bash -c "source source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
+RUN echo 'source ${ROS_ROOT}/install/setup.bash'
+RUN echo 'colcon build --symlink-install'
 
 ENV DEBIAN_FRONTEND=
     
