@@ -1,0 +1,8 @@
+README.md
+setup.py
+speach_board_lib/__init__.py
+speach_board_lib/speach_board_lib.py
+speach_driver.egg-info/PKG-INFO
+speach_driver.egg-info/SOURCES.txt
+speach_driver.egg-info/dependency_links.txt
+speach_driver.egg-info/top_level.txt

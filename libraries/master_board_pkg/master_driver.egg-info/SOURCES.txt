@@ -1,0 +1,8 @@
+README.md
+setup.py
+master_board_lib/__init__.py
+master_board_lib/master_board_lib.py
+master_driver.egg-info/PKG-INFO
+master_driver.egg-info/SOURCES.txt
+master_driver.egg-info/dependency_links.txt
+master_driver.egg-info/top_level.txt
