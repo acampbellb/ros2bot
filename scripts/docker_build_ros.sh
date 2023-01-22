@@ -18,7 +18,7 @@ build_ros()
 	local base_image=$3
 	local extra_tag=$4
     local dockerfile="Dockerfile"
-    local container_tag="ros:${distro}-${extra_tag}-l4t"
+    local container_tag="ros:${distro}-${extra_tag}-l4t-ros2bot"
 
 	echo ""
 	echo "Building container $container_tag"
