@@ -1,3 +1,4 @@
+LICENSE
 README.md
 setup.py
 master_board_lib/__init__.py
