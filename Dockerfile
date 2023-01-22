@@ -5,11 +5,27 @@
 ARG BASE_IMAGE=dustynv/ros:foxy-ros-base-l4t-r35.1.0
 ARG ROS_PKG=ros_base
 
-FROM ${BASE_IMAGE}
+FROM dustynv/ros:foxy-ros-base-l4t-r35.1.0
 
 ENV ROS_DISTRO=foxy
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
 ENV DEBIAN_FRONTEND=noninteractive
+
+#
+# install missing GPG keys
+#
+
+RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 42D5A192B819C5DA
+
+#
+# install apt-utils
+#
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+		apt-utils \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 #
 # create a non-root user

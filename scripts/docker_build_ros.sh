@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-BASE_IMAGE="nvcr.io/nvidia/l4t-base:r35.1.0"
+BASE_IMAGE="dustynv/ros:foxy-ros-base-l4t-r35.1.0"
 ROS_DISTRO="foxy"
 ROS_PACKAGE="ros_base"
 

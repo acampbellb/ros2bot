@@ -4,9 +4,9 @@
 # This script runs the docker ROS container image.
 #
 
-CONTAINER_IMAGE=""
+CONTAINER_IMAGE="foxy-ros_base-l4t-ros2bot"
 WORKSPACE_NAME="ros_ws"
-WORKSPACE_HOST="/home/ros2bot/src"
+WORKSPACE_HOST="/home/Repos/ros2bot/src"
 WORKSPACE_CONTAINER="/home/ros/ros_ws/src/:rw"
 INITIAL_COMMAND="/bin/bash"
 
@@ -31,15 +31,11 @@ docker volume create --driver local \
     "${WORKSPACE_NAME}_src_vol"
 
 # run the container image
-sudo docker run \
-    --runtime nvidia \
-    -it \                                                           # interactive mode, pseudo tty
-    --rm \                                                          # remove container when exits
-    --network host \                                                # network container connects to
-    -e DISPLAY=$DISPLAY \                                           # set display environment variable
-    -v /tmp/.X11-unix/:/tmp/.X11-unix \                             # x11 for SSH
-    -v $XAUTH:$XAUTH -e XAUTHORITY=$XAUTH \                         # x11 authorization
-    -volume="${WORKSPACE_NAME}_src_vol:/home/ros/ros_ws/src/:rw" \  # ros workspace bind mount volume
-    #-v $WORKSPACE_HOST:$WORKSPACE_CONTAINER \ 
+sudo docker run --runtime nvidia -it --rm --network host -e DISPLAY=$DISPLAY \                 
+    -v /tmp/.X11-unix/:/tmp/.X11-unix \                             
+    -v $XAUTH:$XAUTH -e XAUTHORITY=$XAUTH \                         
+    --volume="${WORKSPACE_NAME}_src_vol:/home/ros/ros_ws/src/:rw" \  
     $CONTAINER_IMAGE $INITIAL_COMMAND
+
+    #-v $WORKSPACE_HOST:$WORKSPACE_CONTAINER \     
 
