@@ -13,7 +13,7 @@
 ARG BASE_IMAGE=dustynv/ros:foxy-desktop-l4t-r35.1.0  
 ARG BASE_PACKAGE=desktop
 
-FROM ${BASE_IMAGE}
+FROM dustynv/ros:foxy-desktop-l4t-r35.1.0 
 
 ENV ROS_DISTRO=foxy
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}

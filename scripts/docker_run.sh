@@ -3,8 +3,10 @@
 #
 # This script runs the docker ROS container image.
 #
+# Alternative base image: "acampbellb/ros2bot:foxy-ros_base-l4t-ros2bot"
+#
 
-CONTAINER_IMAGE="acampbellb/ros2bot:foxy-ros_base-l4t-ros2bot"
+CONTAINER_IMAGE="acampbellb/ros2bot:foxy-desktop-l4t-ros2bot"
 WORKSPACE_NAME="ros2bot_ws"
 WORKSPACE_HOST="/home/Repos/ros2bot/src"
 WORKSPACE_CONTAINER="/home/ros/${WORKSPACE_NAME}/src/:rw"
