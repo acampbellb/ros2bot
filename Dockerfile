@@ -59,13 +59,19 @@ RUN echo 'source ${ROS_ROOT}/install/setup.bash'
 RUN echo 'colcon build --symlink-install'
 
 #
+# install pip package dependencies
+#
+
+RUN python3 -m pip install -U \
+		serial
+
+#
 # install board driver packages
 #
 
-RUN mkdir -p /board_drivers/dist
-COPY ./libraries/board_drivers/dist/*.whl /board_drivers/dist/
-RUN pip3 install /board_drivers/dist/*.whl
-
+RUN mkdir -p ${HOME}/board_drivers/dist
+COPY ./libraries/board_drivers/dist/*.whl ${HOME}/board_drivers/dist/
+RUN pip3 install ${HOME}/board_drivers/dist/*.whl
 
 # 
 # setup entrypoint
