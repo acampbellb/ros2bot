@@ -58,13 +58,22 @@ WORKDIR ${HOME}/ros_ws
 RUN echo 'source ${ROS_ROOT}/install/setup.bash'
 RUN echo 'colcon build --symlink-install'
 
+#
+# install board driver packages
+#
+
+RUN mkdir -p /board_drivers/dist
+COPY ./libraries/board_drivers/dist/*.whl /board_drivers/dist/
+RUN pip3 install /board_drivers/dist/*.whl
+
+
 # 
 # setup entrypoint
 #
 
-ENV DEBIAN_FRONTEND=
-
 COPY ./scripts/ros_entrypoint.sh /ros_entrypoint.sh
+
+ENV DEBIAN_FRONTEND=
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
