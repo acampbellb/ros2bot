@@ -64,6 +64,7 @@ USER ${USERNAME}
 ENV HOME /home/${USER}
 RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src
 WORKDIR ${HOME}/${ROS_WORKSPACE}
+COPY ./src/* ${HOME}/${ROS_WORKSPACE}/src
 # source underlay
 RUN if [ -f /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi
 RUN echo "if [ -f /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi" >> ~/.bashrc
