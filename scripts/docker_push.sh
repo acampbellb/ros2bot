@@ -23,7 +23,7 @@ push()
 	push_retag $1 $2 $2
 }
 
-ros_image = "ros:$ROS_DISTRO-$ROS_PACKAGE-l4t"
+ros_image = "ros:$ROS_DISTRO-$ROS_PACKAGE-l4t-ros2bot"
 
 push $DOCKERHUB $ros_image
 

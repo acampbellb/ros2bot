@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-ros_env_setup="/opt/ros/$ROS_DISTRO/setup.bash"
+ros_env_setup="/opt/ros/$ROS_DISTRO/install/setup.bash"
 echo "SOURCING.. $ros_env_setup"
 source "$ros_env_setup"
 

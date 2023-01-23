@@ -4,11 +4,12 @@
 # This script runs the docker ROS container image.
 #
 
-CONTAINER_IMAGE="foxy-ros_base-l4t-ros2bot"
+CONTAINER_IMAGE="acampbellb/ros2bot:foxy-ros_base-l4t-ros2bot"
 WORKSPACE_NAME="ros_ws"
 WORKSPACE_HOST="/home/Repos/ros2bot/src"
 WORKSPACE_CONTAINER="/home/ros/ros_ws/src/:rw"
-INITIAL_COMMAND="/bin/bash"
+INITIAL_COMMAND=" $@ "
+SOURCE_VOLUME="${WORKSPACE_NAME}_src_vol"
 
 echo "CONTAINER_IMAGE:     $CONTAINER_IMAGE"
 echo "WORKSPACE_HOST:      $WORKSPACE_HOST"
@@ -28,14 +29,14 @@ docker volume create --driver local \
     --opt type="none" \
     --opt device="${PWD}/src/" \
     --opt o="bind" \
-    "${WORKSPACE_NAME}_src_vol"
+    "${SOURCE_VOLUME}"
+
+echo ${PWD}    
 
 # run the container image
-sudo docker run --runtime nvidia -it --rm --network host -e DISPLAY=$DISPLAY \                 
-    -v /tmp/.X11-unix/:/tmp/.X11-unix \                             
-    -v $XAUTH:$XAUTH -e XAUTHORITY=$XAUTH \                         
-    --volume="${WORKSPACE_NAME}_src_vol:/home/ros/ros_ws/src/:rw" \  
+sudo docker run --runtime nvidia -it --rm --network host -e DISPLAY=$DISPLAY -v /tmp/.X11-unix/:/tmp/.X11-unix -v $XAUTH:$XAUTH -e XAUTHORITY=$XAUTH -v "${SOURCE_VOLUME}":/home/ros/ros_ws/src/:rw \
     $CONTAINER_IMAGE $INITIAL_COMMAND
 
+    # --volume="${WORKSPACE_NAME}_src_vol:/home/ros/ros_ws/src/:rw" \ 
     #-v $WORKSPACE_HOST:$WORKSPACE_CONTAINER \     
 
