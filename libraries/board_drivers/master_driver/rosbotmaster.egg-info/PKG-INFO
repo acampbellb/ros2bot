@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
-Name: speach-driver
+Name: rosbotmaster
 Version: 0.0.1
-Summary: Package to create speach board driver
+Summary: Package to create master board driver
 Author: Adam Campbell
 Author-email: acampbellb@hotmail.com
 Classifier: Programming Language :: Python :: 3
@@ -11,4 +11,4 @@ Requires-Python: >=3.7
 Description-Content-Type: text/markdown
 License-File: LICENSE
 
-# Speach expansion board driver
+# Master expansion board driver package
