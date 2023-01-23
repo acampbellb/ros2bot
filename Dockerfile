@@ -59,7 +59,8 @@ WORKDIR ${HOME}/${ROS_WORKSPACE}
 # source underlay
 RUN if [ /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi
 RUN echo "if [ /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi" >> ~/.bashrc
-# install dependencies                   
+# install dependencies   
+RUN rosdep update                
 RUN rosdep install -i --from-path src --rosdistro foxy -y   
 # build workspace 
 RUN colcon build --symlink-install                        
