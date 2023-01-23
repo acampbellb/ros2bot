@@ -56,10 +56,16 @@ USER ros
 ENV HOME /home/${USER}
 RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src
 WORKDIR ${HOME}/${ROS_WORKSPACE}
-RUN echo "source ${ROS_ROOT}/install/setup.bash"                    # source underlay
-RUN echo "rosdep install -i --from-path src --rosdistro foxy -y"    # install dependencies
-RUN echo 'colcon build --symlink-install'                           # build workspace 
-RUN echo "source /install/local_setup.bash" >> ~/.bashrc            # source overlay
+# source underlay
+RUN if [ /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi
+RUN echo "if [ /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi" >> ~/.bashrc
+# install dependencies                   
+RUN rosdep install -i --from-path src --rosdistro foxy -y   
+# build workspace 
+RUN colcon build --symlink-install                        
+# source overlay
+RUN if [ ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi
+RUN echo "if [ ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi" >> ~/.bashrc
 
 #
 # install pip package dependencies
