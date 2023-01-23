@@ -51,22 +51,22 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # create workspace
 #
 
-ENV USER ros
-USER ros
+ENV USER ${USERNAME}
+USER ${USERNAME}
 ENV HOME /home/${USER}
 RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src
 WORKDIR ${HOME}/${ROS_WORKSPACE}
 # source underlay
-RUN if [ /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi
-RUN echo "if [ /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi" >> ~/.bashrc
+RUN if [ -f /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi
+RUN echo "if [ -f /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi" >> ~/.bashrc
 # install dependencies   
 RUN rosdep update                
-RUN rosdep install -i --from-path src --rosdistro foxy -y   
+RUN rosdep install -i --from-path src --rosdistro ${ROS_DISTRO} -y   
 # build workspace 
 RUN colcon build --symlink-install                        
 # source overlay
-RUN if [ ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi
-RUN echo "if [ ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi" >> ~/.bashrc
+RUN if [ -f ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi
+RUN echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi" >> ~/.bashrc
 
 #
 # install pip package dependencies
