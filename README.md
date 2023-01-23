@@ -4,7 +4,7 @@ Jetson / Jetpack based ROS2 docker container workspace with STM32 driver, ZED ca
 
 ## Getting started
 
-1. Make scripts executable
+1. Make scripts folder executable
 
     ```
     $ cd /ros2bot/scripts
@@ -39,15 +39,14 @@ Jetson / Jetpack based ROS2 docker container workspace with STM32 driver, ZED ca
 ## Workspace development
 
 The container contains an ROS workspace directory that is bound to a host directory using a docker volume
-bind mount within the ros2bot repository, ros_ws. You can develop packages on the host and build them in 
-the container.
+bind mount within the ros2bot repository. You can develop packages on the host and build them in the container.
 
 ```
 Host workspace folder: /ros2bot/src
 ```
 
 ```
-Container workspace: /home/ros/ros_ws/src
+Container workspace: /home/ros/ros2bot_ws/src
 ```
 
 

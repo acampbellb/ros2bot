@@ -9,6 +9,7 @@ FROM dustynv/ros:foxy-ros-base-l4t-r35.1.0
 
 ENV ROS_DISTRO=foxy
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
+ENV ROS_WORKSPACE=ros2bot_ws
 ENV DEBIAN_FRONTEND=noninteractive
 
 #
@@ -53,10 +54,12 @@ RUN groupadd --gid $USER_GID $USERNAME \
 ENV USER ros
 USER ros
 ENV HOME /home/${USER}
-RUN mkdir -p ${HOME}/ros_ws/src
-WORKDIR ${HOME}/ros_ws
-RUN echo 'source ${ROS_ROOT}/install/setup.bash'
-RUN echo 'colcon build --symlink-install'
+RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src
+WORKDIR ${HOME}/${ROS_WORKSPACE}
+RUN echo "source ${ROS_ROOT}/install/setup.bash"                    # source underlay
+RUN echo "rosdep install -i --from-path src --rosdistro foxy -y"    # install dependencies
+RUN echo 'colcon build --symlink-install'                           # build workspace 
+RUN echo "source /install/local_setup.bash" >> ~/.bashrc            # source overlay
 
 #
 # install pip package dependencies
