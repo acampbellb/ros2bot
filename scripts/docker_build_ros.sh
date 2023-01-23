@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
 
-BASE_IMAGE="dustynv/ros:foxy-ros-base-l4t-r35.1.0"
+# 
+# Alternative base images/packages: 
+#
+# Package: 	ros_base
+# Image: 	dustynv/ros:foxy-ros-base-l4t-r35.1.0
+#
+# Package: 	desktop
+# Image: 	dustynv/ros:foxy-desktop-l4t-r35.1.0
+#
+
+BASE_IMAGE="dustynv/ros:foxy-desktop-l4t-r35.1.0"  
 ROS_DISTRO="foxy"
-ROS_PACKAGE="ros_base"
+ROS_PACKAGE="desktop"
 
 # determine the L4T version
 source scripts/docker_base.sh

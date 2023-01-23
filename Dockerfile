@@ -1,11 +1,19 @@
 #
 # Installs jetson ROS2 container for jetpack 35.1
 #
+# Alternative base images/packages: 
+#
+# Package: 	ros_base
+# Image: 	  dustynv/ros:foxy-ros-base-l4t-r35.1.0
+#
+# Package: 	desktop
+# Image: 	  dustynv/ros:foxy-desktop-l4t-r35.1.0
+#
 
-ARG BASE_IMAGE=dustynv/ros:foxy-ros-base-l4t-r35.1.0
-ARG ROS_PKG=ros_base
+ARG BASE_IMAGE=dustynv/ros:foxy-desktop-l4t-r35.1.0  
+ARG BASE_PACKAGE=desktop
 
-FROM dustynv/ros:foxy-ros-base-l4t-r35.1.0
+FROM ${BASE_IMAGE}
 
 ENV ROS_DISTRO=foxy
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
@@ -90,6 +98,10 @@ RUN pip3 install ${HOME}/board_drivers/dist/*.whl
 COPY ./scripts/ros_entrypoint.sh /ros_entrypoint.sh
 
 ENV DEBIAN_FRONTEND=
+
+RUN echo "Base image: ${BASE_IMAGE}"
+RUN echo "Base package: ${BASE_PACKAGE}"
+RUN echo "ROS distro: ${ROS_DISTRO}}"
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
