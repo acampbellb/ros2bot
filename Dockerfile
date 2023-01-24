@@ -74,7 +74,7 @@ RUN rosdep install -i --from-path src --rosdistro ${ROS_DISTRO} -y
 COPY ./src/* ${HOME}/${ROS_WORKSPACE}/src/
 # build workspace 
 WORKDIR ${HOME}/${ROS_WORKSPACE}
-RUN colcon build --symlink-install                        
+RUN colcon build                    
 # source overlay
 RUN if [ -f ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi
 RUN echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi" >> ~/.bashrc
