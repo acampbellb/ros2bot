@@ -70,12 +70,11 @@ RUN echo "if [ -f /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/
 # install dependencies 
 RUN rosdep update                
 RUN rosdep install -i --from-path src --rosdistro ${ROS_DISTRO} -y   
-# copy source code
-COPY ./src/* ${HOME}/${ROS_WORKSPACE}/src/
-# build workspace 
-WORKDIR ${HOME}/${ROS_WORKSPACE}
-RUN colcon build --packages-select master_driver_package   
-RUN colcon build --packages-select speach_driver_package                 
+# build packages (one by one due to how containers are built in steps)
+ADD ./src/master_driver_package ${HOME}/${ROS_WORKSPACE}/src/
+RUN /bin/bash -c "source /opt/ros/foxy/install/setup.bash; colcon build"
+ADD ./src/speach_driver_package ${HOME}/${ROS_WORKSPACE}/src/ 
+RUN /bin/bash -c "source /opt/ros/foxy/install/setup.bash; colcon build"
 # source overlay
 RUN if [ -f ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi
 RUN echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi" >> ~/.bashrc
