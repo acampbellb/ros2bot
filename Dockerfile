@@ -13,7 +13,7 @@
 ARG BASE_IMAGE=dustynv/ros:foxy-desktop-l4t-r35.1.0  
 ARG BASE_PACKAGE=desktop
 
-FROM dustynv/ros:foxy-desktop-l4t-r35.1.0 
+FROM ${BASE_IMAGE} 
 
 ENV ROS_DISTRO=foxy
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
@@ -27,22 +27,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 42D5A192B819C5DA
 
 #
-# install apt-utils
-#
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-		apt-utils \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-#
 # create a non-root user
 #
 
-ARG USERNAME=ros
+ARG USER=ros
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
+ARG HOME /home/${USER}
 
 RUN groupadd --gid $USER_GID $USERNAME \
   && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
@@ -52,42 +43,43 @@ RUN groupadd --gid $USER_GID $USERNAME \
   && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
   && chmod 0440 /etc/sudoers.d/$USERNAME \
   # cleanup
-  && rm -rf /var/lib/apt/lists/* \
-  && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc
+  && rm -rf /var/lib/apt/lists/* 
 
 #
-# create workspace
+# switch from root to ros user
 #
 
-ENV USER ${USERNAME}
-USER ${USERNAME}
-ENV HOME /home/${USER}
-RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src
+USER ${USER}
+
+#
+# install development packages
+#
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  python3-argcomplete \
+  && pyserial \
+  && rm -rf /var/lib/apt/lists/* 
+
+#
+# create workspace and build ros packages
+#
+
 WORKDIR ${HOME}/${ROS_WORKSPACE}
-# source underlay
-RUN if [ -f /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi
-RUN echo "if [ -f /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi" >> ~/.bashrc
-# install dependencies 
-RUN rosdep update                
-RUN rosdep install -i --from-path src --rosdistro ${ROS_DISTRO} -y   
-# build packages (one by one due to how containers are built in steps)
-ADD ./src/master_driver_package ${HOME}/${ROS_WORKSPACE}/src/
-RUN /bin/bash -c "source /opt/ros/foxy/install/setup.bash; colcon build"
-ADD ./src/speach_driver_package ${HOME}/${ROS_WORKSPACE}/src/ 
-RUN /bin/bash -c "source /opt/ros/foxy/install/setup.bash; colcon build"
-# source overlay
-RUN if [ -f ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi
-RUN echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/local_setup.bash; fi" >> ~/.bashrc
+RUN mkdir src && mkdir conf \
+  && COPY ./conf/upstream.repos conf/ \
+  && vcs import src < upstream.repos \
+  && . /opt/ros/${ROS_DISTRO}/setup.sh \
+  && rosdep update && apt-get update \
+  && rosdep install -q -y \
+      --from-paths src \
+      --ignore-src \
+      --rosdistro ${ROS_DISTRO} \
+  && rm -rf /var/lib/apt/lists/* \
+  && colcon build --symlink-install \
+  && rm -rf build log
 
 #
-# install pip package dependencies
-#
-
-RUN python3 -m pip install -U \
-		serial
-
-#
-# install board driver packages
+# install expansion board driver packages
 #
 
 RUN mkdir -p ${HOME}/board_drivers/dist
@@ -102,9 +94,9 @@ COPY ./scripts/ros_entrypoint.sh /ros_entrypoint.sh
 
 ENV DEBIAN_FRONTEND=
 
-RUN echo "Base image: ${BASE_IMAGE}"
-RUN echo "Base package: ${BASE_PACKAGE}"
-RUN echo "ROS distro: ${ROS_DISTRO}}"
+RUN echo "BASE IMAGE:   ${BASE_IMAGE}"
+RUN echo "BASE PACKAGE: ${BASE_PACKAGE}"
+RUN echo "ROS DISTRO:   ${ROS_DISTRO}"
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]

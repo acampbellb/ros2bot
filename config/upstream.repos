@@ -1,0 +1,5 @@
+repositories:
+  vcstool:
+    type: git
+    url: git@github.com:acampbellb/ros2bot_packages.git
+    version: main
