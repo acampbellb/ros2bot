@@ -1,9 +1,0 @@
-LICENSE
-README.md
-setup.py
-rosbotmaster/__init__.py
-rosbotmaster/rosbotmaster.py
-rosbotmaster.egg-info/PKG-INFO
-rosbotmaster.egg-info/SOURCES.txt
-rosbotmaster.egg-info/dependency_links.txt
-rosbotmaster.egg-info/top_level.txt

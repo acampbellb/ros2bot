@@ -83,14 +83,14 @@ USER ${USER}
 ENV HOME /home/${USER}
 
 #
-# make drivers & config directories
+# make libraries and config directories
 #
 
-RUN mkdir -p ${HOME}/drivers/dist \
+RUN mkdir -p ${HOME}/libraries/dist \
   && mkdir -p ${HOME}/${ROS_WORKSPACE}/config
 COPY ./config/upstream.repos ${HOME}/${ROS_WORKSPACE}/config/
-COPY ./drivers/dist/*.whl ${HOME}/drivers/dist/
-RUN pip3 install ${HOME}/drivers/dist/*.whl
+COPY ./libraries/dist/*.whl ${HOME}/libraries/dist/
+RUN pip3 install ${HOME}/libraries/dist/*.whl
 
 #
 # create workspace and build ros packages

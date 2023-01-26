@@ -6,8 +6,7 @@ import time
 import serial
 import threading
 
-# V1.7.3
-class MasterDriver(object):
+class MasterDriverLib(object):
     __uart_state = 0
 
     def __init__(self, car_type=1, com="/dev/myserial", delay=.002, debug=False):

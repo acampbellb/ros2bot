@@ -7,7 +7,7 @@ import sys
 import serial
 
 # V0.0.1
-class SpeachDriver(object):
+class SpeachDriverLib(object):
 
     def __init__(self, com="/dev/myspeech"):
         # com="/dev/ttyUSB0"

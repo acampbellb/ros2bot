@@ -1,9 +1,0 @@
-LICENSE
-README.md
-setup.py
-rosbotspeach/__init__.py
-rosbotspeach/rosbotspeach.py
-rosbotspeach.egg-info/PKG-INFO
-rosbotspeach.egg-info/SOURCES.txt
-rosbotspeach.egg-info/dependency_links.txt
-rosbotspeach.egg-info/top_level.txt
