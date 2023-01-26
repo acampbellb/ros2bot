@@ -96,19 +96,14 @@ RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src \
   && colcon build --symlink-install \
   && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh
 
+ENV DEBIAN_FRONTEND=
+
 # 
 # setup entrypoint
 #
 
-RUN mkdir ${HOME}/${ROS_WORKSPACE}/scripts
-COPY ./scripts/ros_entrypoint.sh ${HOME}/${ROS_WORKSPACE}/scripts/ros_entrypoint.sh
+COPY ./scripts/ros_entrypoint.sh ${HOME}/ros_entrypoint.sh
 
-ENV DEBIAN_FRONTEND=
-
-RUN echo "BASE IMAGE:   ${BASE_IMAGE}"
-RUN echo "BASE PACKAGE: ${BASE_PACKAGE}"
-RUN echo "ROS DISTRO:   ${ROS_DISTRO}"
-
-ENTRYPOINT ["${HOME}/${ROS_WORKSPACE}/scripts/ros_entrypoint.sh"]
+ENTRYPOINT ["/home/ros/ros_entrypoint.sh"]
 CMD ["bash"]
 WORKDIR /
