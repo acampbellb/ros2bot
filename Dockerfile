@@ -16,7 +16,7 @@ ARG BASE_PACKAGE=desktop
 FROM ${BASE_IMAGE} 
 
 ENV ROS_DISTRO=foxy
-ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
+ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}/install
 ENV ROS_WORKSPACE=ros2bot_ws
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -30,7 +30,7 @@ RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 42D5A192B819C5
 # create a non-root user
 #
 
-ARG USER=ros
+ARG USERNAME=ros
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 ARG HOME /home/${USER}
@@ -49,7 +49,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # switch from root to ros user
 #
 
-USER ${USER}
+USER ${USERNAME}
 
 #
 # install development packages
@@ -65,10 +65,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #
 
 WORKDIR ${HOME}/${ROS_WORKSPACE}
-RUN mkdir src && mkdir conf \
-  && COPY ./conf/upstream.repos conf/ \
-  && vcs import src < upstream.repos \
-  && . /opt/ros/${ROS_DISTRO}/setup.sh \
+RUN mkdir src && mkdir config \
+  && COPY ./config/upstream.repos config/ \
+  && vcs import src < config/upstream.repos \
+  && . ${ROS_ROOT}/setup.sh \
   && rosdep update && apt-get update \
   && rosdep install -q -y \
       --from-paths src \
