@@ -60,6 +60,17 @@ RUN groupadd --gid $USER_GID $USERNAME \
   && rm -rf /var/lib/apt/lists/* 
 
 #
+# install development packages
+#
+
+RUN mkdir -p ${HOME}/drivers/dist
+COPY ./drivers/dist/*.whl ${HOME}/drivers/dist/
+RUN pip3 install \
+  pyserial
+#  ${HOME}/drivers/dist/rosbotmaster-0.0.1-py3-none-any.whl \
+#  ${HOME}/drivers/dist/rosbotspeach-0.0.1-py3-none-any.whl  
+
+#
 # switch from root to ros user
 #
 
@@ -83,24 +94,14 @@ RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src \
   && rm -rf /var/lib/apt/lists/* \
   && cd ${HOME}/${ROS_WORKSPACE} \
   && colcon build --symlink-install \
-  && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh
-
-#
-# install development packages
-#
-
-RUN mkdir -p ${HOME}/board_drivers/dist
-COPY ./libraries/board_drivers/dist/*.whl ${HOME}/board_drivers/dist/
-RUN pip3 install \
-  serial \
-  ${HOME}/board_drivers/dist/rosbotmaster-0.0.1-py3-none-any.whl \
-  ${HOME}/board_drivers/dist/rosbotspeach-0.0.1-py3-none-any.whl
+  && . ${HOME}/${ROS_WORKSPACE}/install/local_setup
 
 # 
 # setup entrypoint
 #
 
-COPY ./scripts/ros_entrypoint.sh /ros_entrypoint.sh
+RUN mkdir ${HOME}/${ROS_WORKSPACE}/scripts
+COPY ./scripts/ros_entrypoint.sh ${HOME}/${ROS_WORKSPACE}/scripts/ros_entrypoint.sh
 
 ENV DEBIAN_FRONTEND=
 
@@ -108,6 +109,6 @@ RUN echo "BASE IMAGE:   ${BASE_IMAGE}"
 RUN echo "BASE PACKAGE: ${BASE_PACKAGE}"
 RUN echo "ROS DISTRO:   ${ROS_DISTRO}"
 
-ENTRYPOINT ["/ros_entrypoint.sh"]
+ENTRYPOINT ["${HOME}/${ROS_WORKSPACE}/scripts/ros_entrypoint.sh"]
 CMD ["bash"]
 WORKDIR /
