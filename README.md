@@ -27,8 +27,10 @@ Jetson / Jetpack based ROS2 docker container workspace with STM32 driver, ZED ca
 4. Push docker image to docker hub repository
 
     ```
-    $ docker push <username>/<repository name>:foxy-ros_base-l4t-ros2bot
+    $ docker push <username>/<repository name>:foxy-<ros package>-l4t-ros2bot
     ```
+
+    ROS package can be either 'ros_base' or 'desktop'.
 
 5. Run docker container
 
