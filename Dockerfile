@@ -83,24 +83,18 @@ RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src \
   && rm -rf /var/lib/apt/lists/* \
   && cd ${HOME}/${ROS_WORKSPACE} \
   && colcon build --symlink-install \
-  && rm -rf build log \
   && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh
 
 #
-# install python development packages
-#
-
-RUN python3 -m pip install -U \
-		pyserial \
-  && pip install --upgrade pydocstyle
-
-#
-# install expansion board driver packages
+# install development packages
 #
 
 RUN mkdir -p ${HOME}/board_drivers/dist
 COPY ./libraries/board_drivers/dist/*.whl ${HOME}/board_drivers/dist/
-RUN pip3 install ${HOME}/board_drivers/dist/*.whl
+RUN pip3 install \
+  serial \
+  ${HOME}/board_drivers/dist/rosbotmaster-0.0.1-py3-none-any.whl \
+  ${HOME}/board_drivers/dist/rosbotspeach-0.0.1-py3-none-any.whl
 
 # 
 # setup entrypoint
