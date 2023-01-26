@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'speach_driver_package'
+package_name = 'ros2bot_speach'
 
 setup(
     name=package_name,
@@ -13,14 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='ros',
-    maintainer_email='acampbellb@hotmail.com',
-    description='speach expansion board driver package',
+    maintainer='Adam Campbell',
+    maintainer_email='abcampbellb@gmail.com',
+    description='ros2bot speach expansion board driver',
     license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'speach_driver_node = speach_driver_package.speach_driver_node:main'
+            'ros2bot_speach = ros2bot_speach.ros2bot_speach:main'
         ],
     },
 )

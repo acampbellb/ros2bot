@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'master_driver_package'
+package_name = 'ros2bot_master'
 
 setup(
     name=package_name,
@@ -13,14 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='ros',
-    maintainer_email='acampbellb@hotmail.com',
-    description='master expansion board driver package',
+    maintainer='Adam Campbell',
+    maintainer_email='abcampbellb@gmail.com',
+    description='ros2bot master expansion board driver',
     license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'master_driver_node = master_driver_package.master_driver_node:main'
+            'ros2bot_master = ros2bot_master.ros2bot_master:main'
         ],
     },
 )

@@ -1,5 +1,5 @@
 def main():
-    print('Hi from master_driver_package.')
+    print('Hi from ros2bot_speach.')
 
 
 if __name__ == '__main__':
