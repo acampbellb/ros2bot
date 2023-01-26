@@ -104,6 +104,6 @@ ENV DEBIAN_FRONTEND=
 
 COPY ./scripts/ros_entrypoint.sh ${HOME}/ros_entrypoint.sh
 
-ENTRYPOINT ["/home/ros/ros_entrypoint.sh"]
+#ENTRYPOINT ["/home/ros/ros_entrypoint.sh"]
 CMD ["bash"]
 WORKDIR /
