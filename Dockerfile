@@ -13,7 +13,7 @@
 ARG BASE_IMAGE=dustynv/ros:foxy-desktop-l4t-r35.1.0  
 ARG BASE_PACKAGE=desktop
 
-FROM ${BASE_IMAGE} 
+FROM dustynv/ros:foxy-desktop-l4t-r35.1.0
 
 ENV ROS_DISTRO=foxy
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}/install
@@ -27,22 +27,36 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 42D5A192B819C5DA
 
 #
+# install vcstool
+#
+
+RUN curl -s https://packagecloud.io/install/repositories/dirk-thomas/vcstool/script.deb.sh | sudo bash \
+  && sudo apt-get update \
+  && sudo apt-get install python3-vcstool \
+  && rm -rf /var/lib/apt/lists/* 
+
+#
 # create a non-root user
 #
 
 ARG USERNAME=ros
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-ARG HOME /home/${USER}
+ARG HOME /home/${USERNAME}
 
 RUN groupadd --gid $USER_GID $USERNAME \
   && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
   # add sudo support for the non-root user
-  && apt-get update \
-  && apt-get install -y sudo git-core bash-completion \
+  && sudo apt-get update \ 
+  && sudo apt-get install -y --no-install-recommends \
+    sudo \ 
+    git-core \
+    bash-completion \
+    python3-argcomplete \
+    python3-autopep8 \
+    pylint \    
   && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
   && chmod 0440 /etc/sudoers.d/$USERNAME \
-  # cleanup
   && rm -rf /var/lib/apt/lists/* 
 
 #
@@ -52,31 +66,22 @@ RUN groupadd --gid $USER_GID $USERNAME \
 USER ${USERNAME}
 
 #
-# install development packages
-#
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  python3-argcomplete \
-  python3-autopep8 \
-  pylint \
-  && rm -rf /var/lib/apt/lists/* \
-  && pip install --upgrade pydocstyle
-
-#
 # create workspace and build ros packages
 #
 
 WORKDIR ${HOME}/${ROS_WORKSPACE}
-RUN mkdir src && mkdir config \
-  && COPY ./config/upstream.repos config/ \
-  && vcs import src < config/upstream.repos \
+RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/config
+COPY ./config/upstream.repos ${HOME}/${ROS_WORKSPACE}/config/
+RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src \ 
+  && vcs import ${HOME}/${ROS_WORKSPACE}/src < config/upstream.repos \
   && . ${ROS_ROOT}/setup.sh \
-  && rosdep update && apt-get update \
+  && rosdep update \
   && rosdep install -q -y \
-      --from-paths src \
+      --from-paths ${HOME}/${ROS_WORKSPACE}/src \
       --ignore-src \
       --rosdistro ${ROS_DISTRO} \
   && rm -rf /var/lib/apt/lists/* \
+  && cd ${HOME}/${ROS_WORKSPACE} \
   && colcon build --symlink-install \
   && rm -rf build log \
   && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh
@@ -86,7 +91,8 @@ RUN mkdir src && mkdir config \
 #
 
 RUN python3 -m pip install -U \
-		pyserial
+		pyserial \
+  && pip install --upgrade pydocstyle
 
 #
 # install expansion board driver packages
