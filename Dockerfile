@@ -76,7 +76,8 @@ RUN mkdir src && mkdir config \
       --rosdistro ${ROS_DISTRO} \
   && rm -rf /var/lib/apt/lists/* \
   && colcon build --symlink-install \
-  && rm -rf build log
+  && rm -rf build log \
+  && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh
 
 #
 # install expansion board driver packages
