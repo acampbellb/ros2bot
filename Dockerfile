@@ -57,8 +57,10 @@ USER ${USERNAME}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   python3-argcomplete \
-  && pyserial \
-  && rm -rf /var/lib/apt/lists/* 
+  python3-autopep8 \
+  pylint \
+  && rm -rf /var/lib/apt/lists/* \
+  && pip install --upgrade pydocstyle
 
 #
 # create workspace and build ros packages
@@ -78,6 +80,13 @@ RUN mkdir src && mkdir config \
   && colcon build --symlink-install \
   && rm -rf build log \
   && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh
+
+#
+# install python development packages
+#
+
+RUN python3 -m pip install -U \
+		pyserial
 
 #
 # install expansion board driver packages
