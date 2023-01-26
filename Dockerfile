@@ -94,7 +94,7 @@ RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src \
   && rm -rf /var/lib/apt/lists/* \
   && cd ${HOME}/${ROS_WORKSPACE} \
   && colcon build --symlink-install \
-  && . ${HOME}/${ROS_WORKSPACE}/install/local_setup
+  && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh
 
 # 
 # setup entrypoint
