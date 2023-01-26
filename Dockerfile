@@ -57,32 +57,46 @@ RUN groupadd --gid $USER_GID $USERNAME \
     pylint \    
   && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
   && chmod 0440 /etc/sudoers.d/$USERNAME \
-  && rm -rf /var/lib/apt/lists/* 
+  && rm -rf /var/lib/apt/lists/* \
+  && echo "if [ -f /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi" >> /home/$USERNAME/.bashrc
 
 #
 # install development packages
 #
 
-RUN mkdir -p ${HOME}/drivers/dist
-COPY ./drivers/dist/*.whl ${HOME}/drivers/dist/
 RUN pip3 install \
   pyserial
-#  ${HOME}/drivers/dist/rosbotmaster-0.0.1-py3-none-any.whl \
-#  ${HOME}/drivers/dist/rosbotspeach-0.0.1-py3-none-any.whl  
+
+#
+# setup entrypoint script
+#
+
+COPY ./scripts/ros_entrypoint.sh /ros_entrypoint.sh
+RUN bash -c "chmod +x /ros_entrypoint.sh"  
 
 #
 # switch from root to ros user
 #
 
-USER ${USERNAME}
+ENV USER ${USERNAME}
+USER ${USER}
+ENV HOME /home/${USER}
+
+#
+# make drivers & config directories
+#
+
+RUN mkdir -p ${HOME}/drivers/dist \
+  && mkdir -p ${HOME}/${ROS_WORKSPACE}/config
+COPY ./config/upstream.repos ${HOME}/${ROS_WORKSPACE}/config/
+COPY ./drivers/dist/*.whl ${HOME}/drivers/dist/
+RUN pip3 install ${HOME}/drivers/dist/*.whl
 
 #
 # create workspace and build ros packages
 #
 
 WORKDIR ${HOME}/${ROS_WORKSPACE}
-RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/config
-COPY ./config/upstream.repos ${HOME}/${ROS_WORKSPACE}/config/
 RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src \ 
   && vcs import ${HOME}/${ROS_WORKSPACE}/src < config/upstream.repos \
   && . ${ROS_ROOT}/setup.sh \
@@ -94,16 +108,15 @@ RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src \
   && rm -rf /var/lib/apt/lists/* \
   && cd ${HOME}/${ROS_WORKSPACE} \
   && colcon build --symlink-install \
-  && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh
-
-ENV DEBIAN_FRONTEND=
+  && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh \
+  && echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/setup.bash; fi" >> /home/$USERNAME/.bashrc
 
 # 
 # setup entrypoint
 #
 
-COPY ./scripts/ros_entrypoint.sh ${HOME}/ros_entrypoint.sh
+ENV DEBIAN_FRONTEND=
 
-#ENTRYPOINT ["/home/ros/ros_entrypoint.sh"]
+ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
 WORKDIR /

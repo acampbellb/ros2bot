@@ -5,7 +5,7 @@ ros_env_setup="$ROS_ROOT/setup.bash"
 echo "SOURCING.. $ros_env_setup"
 source "$ros_env_setup"
 
-ros_ws_setup="$HOME/$ROS_WORKSPACE/install/local_setup.bash"
+ros_ws_setup="$HOME/$ROS_WORKSPACE/install/setup.bash"
 echo "SOURCING.. $ros_ws_setup"
 source "$ros_env_setup"
 
