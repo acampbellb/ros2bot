@@ -6,8 +6,8 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="ros2bot_master_lib",
     version="0.0.1",
-    author="Adam Campbell",
-    author_email="abcampbellb@gmail.com",
+    author="",
+    author_email="",
     description="ros2bot master board driver library",
     long_description=long_description,
     long_description_content_type="text/markdown",

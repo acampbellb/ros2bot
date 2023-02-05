@@ -1,2 +1,2 @@
-from ros2bot_speach_lib import SpeachDriverLib
+from .ros2bot_speach_driver import Ros2botSpeachDriver
 

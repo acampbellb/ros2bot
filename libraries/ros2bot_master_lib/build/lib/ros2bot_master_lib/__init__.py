@@ -1,2 +1,1 @@
-from ros2bot_master_lib import MasterDriverLib
-
+from .ros2bot_master_driver import Ros2botMasterDriver

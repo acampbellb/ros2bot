@@ -6,7 +6,7 @@ import time
 import serial
 import threading
 
-class MasterDriverLib(object):
+class Ros2botMasterDriver(object):
     __uart_state = 0
 
     def __init__(self, car_type=1, com="/dev/myserial", delay=.002, debug=False):
@@ -300,7 +300,7 @@ class MasterDriverLib(object):
             return int(value)
 
     # Start the thread that receives and processes data
-    def create_receive_threading(self):
+    def create_receive_thread(self):
         try:
             if self.__uart_state == 0:
                 name1 = "task_serial_receive"

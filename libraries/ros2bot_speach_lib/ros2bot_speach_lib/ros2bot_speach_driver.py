@@ -7,7 +7,7 @@ import sys
 import serial
 
 # V0.0.1
-class SpeachDriverLib(object):
+class Ros2botSpeachDriver(object):
 
     def __init__(self, com="/dev/myspeech"):
         # com="/dev/ttyUSB0"
