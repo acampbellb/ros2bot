@@ -3,3 +3,7 @@ repositories:
     type: git
     url: https://github.com/acampbellb/ros2bot_packages.git
     version: main
+  vcstool:
+    type: git
+    url: https://github.com/Slamtec/sllidar_ros2.git
+    version: main
