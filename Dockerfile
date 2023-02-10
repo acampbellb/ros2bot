@@ -68,6 +68,32 @@ RUN pip3 install \
   pyserial
 
 #
+# install zed sdk version 3.8.2
+#  
+
+ARG L4T_MAJOR_VERSION=35
+ARG L4T_MINOR_VERSION=1
+ARG L4T_PATCH_VERSION=0
+ARG ZED_SDK_MAJOR=3
+ARG ZED_SDK_MINOR=8
+
+# this environment variable is needed to use the streaming features on Jetson inside a container
+ENV LOGNAME root
+
+ENV LOGNAME root
+RUN apt-get update || true
+RUN apt-get install --no-install-recommends lsb-release wget less udev sudo apt-transport-https build-essential cmake -y&& \
+    echo "# R${L4T_MAJOR_VERSION} (release), REVISION: ${L4T_MINOR_VERSION}.${L4T_PATCH_VERSION}" > /etc/nv_tegra_release ; \
+    wget -q --no-check-certificate -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/${ZED_SDK_MAJOR}.${ZED_SDK_MINOR}/l4t${L4T_MAJOR_VERSION}.${L4T_MINOR_VERSION}/jetsons && \
+    chmod +x ZED_SDK_Linux.run ; ./ZED_SDK_Linux.run silent skip_tools && \
+    rm -rf /usr/local/zed/resources/* \
+    rm -rf ZED_SDK_Linux.run && \
+    rm -rf /var/lib/apt/lists/*
+
+# this symbolic link is needed to use the streaming features on Jetson inside a container
+RUN ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so
+
+#
 # setup entrypoint script
 #
 
@@ -98,16 +124,19 @@ RUN pip3 install ${HOME}/libraries/dist/*.whl
 
 WORKDIR ${HOME}/${ROS_WORKSPACE}
 RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src \ 
+  && ${HOME}/${ROS_WORKSPACE}/src \ 
   && vcs import ${HOME}/${ROS_WORKSPACE}/src < config/upstream.repos \
+  && git clone --recursive https://github.com/stereolabs/zed-ros2-wrapper.git \
+  && cd .. \
   && . ${ROS_ROOT}/setup.sh \
   && rosdep update \
-  && rosdep install -q -y \
+  && rosdep install -q -r -y \
       --from-paths ${HOME}/${ROS_WORKSPACE}/src \
       --ignore-src \
       --rosdistro ${ROS_DISTRO} \
   && rm -rf /var/lib/apt/lists/* \
   && cd ${HOME}/${ROS_WORKSPACE} \
-  && colcon build --symlink-install \
+  && colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release \
   && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh \
   && echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/setup.bash; fi" >> /home/$USERNAME/.bashrc
 
