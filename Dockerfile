@@ -127,6 +127,7 @@ RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src \
   && ${HOME}/${ROS_WORKSPACE}/src \ 
   && vcs import ${HOME}/${ROS_WORKSPACE}/src < config/upstream.repos \
   && git clone --recursive https://github.com/stereolabs/zed-ros2-wrapper.git \
+  && git clone https://github.com/stereolabs/zed-ros2-examples.git \
   && cd .. \
   && . ${ROS_ROOT}/setup.sh \
   && rosdep update \
