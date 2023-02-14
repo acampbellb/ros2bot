@@ -61,11 +61,15 @@ RUN groupadd --gid $USER_GID $USERNAME \
   && echo "if [ -f /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi" >> /home/$USERNAME/.bashrc
 
 #
-# install development packages
+# install python development packages
 #
 
-RUN pip3 install \
-  pyserial
+RUN pip3 install --upgrade pip
+RUN pip3 install cython
+RUN pip3 install numpy
+RUN pip3 install opencv-python
+RUN pip3 install pyopengl
+RUN pip3 install pyserial
 
 #
 # install zed sdk version 3.8.2
