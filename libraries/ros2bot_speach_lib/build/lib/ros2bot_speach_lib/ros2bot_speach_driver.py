@@ -6,20 +6,20 @@ import threading
 import sys
 import serial
 
-# V0.0.1
+# v0.0.1
 class Ros2botSpeachDriver(object):
 
     def __init__(self, com="/dev/myspeech"):
         # com="/dev/ttyUSB0"
         self.ser = serial.Serial(com, 115200)
         if self.ser.isOpen():
-            print("Speech Serial Opened! Baudrate=115200")
+            print("[INFO] speach serial comm opened, baudrate=115200")
         else:
-            print("Speech Serial Open Failed!")
+            print("[ERROR] speach serial comm open failed")
 
     def __del__(self):
         self.ser.close()
-        print("speech serial Close!")
+        print("[INFO] speach serial comm closed")
 
     def void_write(self, void_data):
         void_data1 = int(void_data/100)+48

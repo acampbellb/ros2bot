@@ -6,10 +6,11 @@ import time
 import serial
 import threading
 
+# v0.0.1
 class Ros2botMasterDriver(object):
     __uart_state = 0
 
-    def __init__(self, car_type=1, com="/dev/myserial", delay=.002, debug=False):
+    def __init__(self, bot_type=1, com="/dev/myserial", delay=.002, debug=False):
         # com = "COM30"
         # com="/dev/ttyTHS1"
         # com="/dev/ttyUSB0"
@@ -23,8 +24,8 @@ class Ros2botMasterDriver(object):
         self.__HEAD = 0xFF
         self.__DEVICE_ID = 0xFC
         self.__COMPLEMENT = 257 - self.__DEVICE_ID
-        self.__CAR_TYPE = car_type
-        self.__CAR_ADJUST = 0x80
+        self.__BOT_TYPE = bot_type
+        self.__BOT_ADJUST = 0x80
 
         self.FUNC_AUTO_REPORT = 0x01
         self.FUNC_BEEP = 0x02
@@ -39,11 +40,11 @@ class Ros2botMasterDriver(object):
         self.FUNC_REPORT_ENCODER = 0x0D
 
         self.FUNC_MOTOR = 0x10
-        self.FUNC_CAR_RUN = 0x11
+        self.FUNC_BOT_RUN = 0x11
         self.FUNC_MOTION = 0x12
         self.FUNC_SET_MOTOR_PID = 0x13
         self.FUNC_SET_YAW_PID = 0x14
-        self.FUNC_SET_CAR_TYPE = 0x15
+        self.FUNC_SET_BOT_TYPE = 0x15
 
         self.FUNC_UART_SERVO = 0x20
         self.FUNC_UART_SERVO_ID = 0x21
@@ -60,10 +61,10 @@ class Ros2botMasterDriver(object):
 
         self.FUNC_RESET_FLASH = 0xA0
 
-        self.CARTYPE_X3 = 0x01
-        self.CARTYPE_X3_PLUS = 0x02
-        self.CARTYPE_X1 = 0x04
-        self.CARTYPE_R2 = 0x05
+        self.BOTTYPE_X3 = 0x01
+        self.BOTTYPE_X3_PLUS = 0x02
+        self.BOTTYPE_X1 = 0x04
+        self.BOTTYPE_R2 = 0x05
 
         self.__ax = 0
         self.__ay = 0
@@ -113,19 +114,19 @@ class Ros2botMasterDriver(object):
         self.__AKM_SERVO_ID = 0x01
 
         if self.__debug:
-            print("cmd_delay=" + str(self.__delay_time) + "s")
+            print("[INFO] cmd_delay=" + str(self.__delay_time) + "s")
 
         if self.ser.isOpen():
-            print("Rosmaster Serial Opened! Baudrate=115200")
+            print("[INFO] ros2bot serial comm opened, baudrate=115200")
         else:
-            print("Serial Open Failed!")
+            print("[ERROR] serial comm open failed")
         self.set_uart_servo_torque(1)
         time.sleep(.002)
 
     def __del__(self):
         self.ser.close()
         self.__uart_state = 0
-        print("serial Close!")
+        print("[INFO] ros2bot serial comm closed")
 
     # According to the type of data frame to make the corresponding parsing
     def __parse_data(self, ext_type, ext_data):
@@ -169,7 +170,7 @@ class Ros2botMasterDriver(object):
                 self.__read_id = struct.unpack('B', bytearray(ext_data[0:1]))[0]
                 self.__read_val = struct.unpack('h', bytearray(ext_data[1:3]))[0]
                 if self.__debug:
-                    print("FUNC_UART_SERVO:", self.__read_id, self.__read_val)
+                    print("[INFO] FUNC_UART_SERVO:", self.__read_id, self.__read_val)
 
             elif ext_type == self.FUNC_ARM_CTRL:
                 self.__read_arm[0] = struct.unpack('h', bytearray(ext_data[0:2]))[0]
@@ -180,13 +181,13 @@ class Ros2botMasterDriver(object):
                 self.__read_arm[5] = struct.unpack('h', bytearray(ext_data[10:12]))[0]
                 self.__read_arm_ok = 1
                 if self.__debug:
-                    print("FUNC_ARM_CTRL:", self.__read_arm)
+                    print("[INFO] FUNC_ARM_CTRL:", self.__read_arm)
 
             elif ext_type == self.FUNC_VERSION:
                 self.__version_H = struct.unpack('B', bytearray(ext_data[0:1]))[0]
                 self.__version_L = struct.unpack('B', bytearray(ext_data[1:2]))[0]
                 if self.__debug:
-                    print("FUNC_VERSION:", self.__version_H, self.__version_L)
+                    print("[INFO] FUNC_VERSION:", self.__version_H, self.__version_L)
 
             elif ext_type == self.FUNC_SET_MOTOR_PID:
                 self.__pid_index = struct.unpack('B', bytearray(ext_data[0:1]))[0]
@@ -194,7 +195,7 @@ class Ros2botMasterDriver(object):
                 self.__ki1 = struct.unpack('h', bytearray(ext_data[3:5]))[0]
                 self.__kd1 = struct.unpack('h', bytearray(ext_data[5:7]))[0]
                 if self.__debug:
-                    print("FUNC_SET_MOTOR_PID:", self.__pid_index, [self.__kp1, self.__ki1, self.__kd1])
+                    print("[INFO] FUNC_SET_MOTOR_PID:", self.__pid_index, [self.__kp1, self.__ki1, self.__kd1])
 
             elif ext_type == self.FUNC_SET_YAW_PID:
                 self.__pid_index = struct.unpack('B', bytearray(ext_data[0:1]))[0]
@@ -202,20 +203,20 @@ class Ros2botMasterDriver(object):
                 self.__ki1 = struct.unpack('h', bytearray(ext_data[3:5]))[0]
                 self.__kd1 = struct.unpack('h', bytearray(ext_data[5:7]))[0]
                 if self.__debug:
-                    print("FUNC_SET_YAW_PID:", self.__pid_index, [self.__kp1, self.__ki1, self.__kd1])
+                    print("[INFO] FUNC_SET_YAW_PID:", self.__pid_index, [self.__kp1, self.__ki1, self.__kd1])
 
             elif ext_type == self.FUNC_ARM_OFFSET:
                 self.__arm_offset_id = struct.unpack('B', bytearray(ext_data[0:1]))[0]
                 self.__arm_offset_state = struct.unpack('B', bytearray(ext_data[1:2]))[0]
                 if self.__debug:
-                    print("FUNC_ARM_OFFSET:", self.__arm_offset_id, self.__arm_offset_state)
+                    print("[INFO] FUNC_ARM_OFFSET:", self.__arm_offset_id, self.__arm_offset_state)
 
             elif ext_type == self.FUNC_AKM_DEF_ANGLE:
                 id = struct.unpack('B', bytearray(ext_data[0:1]))[0]
                 self.__akm_def_angle = struct.unpack('B', bytearray(ext_data[1:2]))[0]
                 self.__akm_readed_angle = True
                 if self.__debug:
-                    print("FUNC_AKM_DEF_ANGLE:", id, self.__akm_def_angle)
+                    print("[INFO] FUNC_AKM_DEF_ANGLE:", id, self.__akm_def_angle)
 
     # receive data
     def __receive_data(self):
@@ -242,7 +243,7 @@ class Ros2botMasterDriver(object):
                         self.__parse_data(ext_type, ext_data)
                     else:
                         if self.__debug:
-                            print("check sum error:", ext_len, ext_type, ext_data)
+                            print("[ERROR] check sum error:", ext_len, ext_type, ext_data)
 
     # Request data, function: corresponding function word to return data, parm: parameter passed in
     def __request_data(self, function, param=0):
@@ -251,7 +252,7 @@ class Ros2botMasterDriver(object):
         cmd.append(checksum)
         self.ser.write(cmd)
         if self.__debug:
-            print("request:", cmd)
+            print("[INFO] request:", cmd)
         time.sleep(0.002)
 
     # Arm converts Angle to position pulse
@@ -307,10 +308,10 @@ class Ros2botMasterDriver(object):
                 task_receive = threading.Thread(target=self.__receive_data, name=name1)
                 task_receive.setDaemon(True)
                 task_receive.start()
-                print("----------------create receive threading--------------")
+                print("[INFO] ros2bot create receive threading")
                 self.__uart_state = 1
         except:
-            print('---create_receive_threading error!---')
+            print('[ERROR] create_receive_threading')
             pass
     
     # enable=True, enable=False，
@@ -335,7 +336,7 @@ class Ros2botMasterDriver(object):
                 print("report:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_auto_report_state error!---')
+            print('[ERROR] set_auto_report_state')
             pass
 
     # on_time=0：，on_time=1：，
@@ -345,7 +346,7 @@ class Ros2botMasterDriver(object):
     def set_beep(self, on_time):
         try:
             if on_time < 0:
-                print("beep input error!")
+                print("[ERROR] beep input")
                 return
             value = bytearray(struct.pack('h', int(on_time)))
 
@@ -357,7 +358,7 @@ class Ros2botMasterDriver(object):
                 print("beep:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_beep error!---')
+            print('[ERROR] set_beep')
             pass
 
     # servo_id：，angle：
@@ -367,7 +368,7 @@ class Ros2botMasterDriver(object):
         try:
             if servo_id < 1 or servo_id > 4:
                 if self.__debug:
-                    print("set_pwm_servo input invalid")
+                    print("[ERROR] set_pwm_servo input invalid")
                 return
             if angle > 180:
                 angle = 180
@@ -379,10 +380,10 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("pwmServo:", cmd)
+                print("pwm servo:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_pwm_servo error!---')
+            print('[ERROR] set_pwm_servo')
             pass
 
     # angle_sX=[0, 180]
@@ -404,10 +405,10 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("all Servo:", cmd)
+                print("[INFO] all servo:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_pwm_servo_all error!---')
+            print('[ERROR] set_pwm_servo_all')
             pass
     
     # RGB
@@ -428,10 +429,10 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("rgb:", cmd)
+                print("[INFO] rgb:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_colorful_lamps error!---')
+            print('[ERROR] set_colorful_lamps')
             pass
 
     # RGB
@@ -453,10 +454,10 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("rgb_effect:", cmd)
+                print("[INFO] rgb_effect:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_colorful_effect error!---')
+            print('[ERROR] set_colorful_effect')
             pass
 
 
@@ -475,60 +476,60 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("motor:", cmd)
+                print("[INFO] motor:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_motor error!---')
+            print('[ERROR] set_motor')
             pass
 
     # state=[0~6],=0,=1,=2,=3,=4,=5,=6
     # speed=[-100, 100]，=0
     # adjust=True =False
-    # Control the car forward, backward, left, right and other movements.
+    # Control the robot forward, backward, left, right and other movements.
     # State =[0~6],=0 stop,=1 forward,=2 backward,=3 left,=4 right,=5 spin left,=6 spin right
     # Speed =[-100, 100], =0 Stop.
     # Adjust =True Activate the gyroscope auxiliary motion direction.  If =False, the function is disabled.  
-    def set_car_run(self, state, speed, adjust=False):
+    def set_bot_run(self, state, speed, adjust=False):
         try:
-            car_type = self.__CAR_TYPE
+            bot_type = self.__BOT_TYPE
             if adjust:
-                car_type = car_type | self.__CAR_ADJUST
+                bot_type = bot_type | self.__BOT_ADJUST
             t_speed = bytearray(struct.pack('h', int(speed)))
-            cmd = [self.__HEAD, self.__DEVICE_ID, 0x00, self.FUNC_CAR_RUN, \
-                car_type, int(state&0xff), t_speed[0], t_speed[1]]
+            cmd = [self.__HEAD, self.__DEVICE_ID, 0x00, self.FUNC_BOT_RUN, \
+                bot_type, int(state&0xff), t_speed[0], t_speed[1]]
             cmd[2] = len(cmd) - 1
             checksum = sum(cmd, self.__COMPLEMENT) & 0xff
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("car_run:", cmd)
+                print("[INFO] bot_run:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_car_run error!---')
+            print('[ERROR] set_bot_run')
             pass
 
     # ,v_x=[-1.0, 1.0], v_y=[-1.0, 1.0], v_z=[-5, 5]
-    # Car movement control, v_x = [1.0, 1.0], v_y = [1.0, 1.0], v_z = [5, 5]  
-    def set_car_motion(self, v_x, v_y, v_z):
+    # Robot movement control, v_x = [1.0, 1.0], v_y = [1.0, 1.0], v_z = [5, 5]  
+    def set_bot_motion(self, v_x, v_y, v_z):
         try:
             vx_parms = bytearray(struct.pack('h', int(v_x*1000)))
             vy_parms = bytearray(struct.pack('h', int(v_y*1000)))
             vz_parms = bytearray(struct.pack('h', int(v_z*1000)))
-            cmd = [self.__HEAD, self.__DEVICE_ID, 0x00, self.FUNC_MOTION, self.__CAR_TYPE, \
+            cmd = [self.__HEAD, self.__DEVICE_ID, 0x00, self.FUNC_MOTION, self.__BOT_TYPE, \
                 vx_parms[0], vx_parms[1], vy_parms[0], vy_parms[1], vz_parms[0], vz_parms[1]]
             cmd[2] = len(cmd) - 1
             checksum = sum(cmd, self.__COMPLEMENT) & 0xff
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("motion:", cmd)
+                print("[INFO] motion:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_car_motion error!---')
+            print('[ERROR] set_bot_motion')
             pass
 
 
-    # PID，set_car_motion
+    # PID，set_bot_motion
     # kp ki kd = [0, 10.00], 可输入小数。
     # forever=True，=False
     # flash，delay
@@ -544,7 +545,7 @@ class Ros2botMasterDriver(object):
                 state = 0x5F
             cmd = [self.__HEAD, self.__DEVICE_ID, 0x0A, self.FUNC_SET_MOTOR_PID]
             if kp > 10 or ki > 10 or kd > 10 or kp < 0 or ki < 0 or kd < 0:
-                print("PID value must be:[0, 10.00]")
+                print("[INFO] PID value must be:[0, 10.00]")
                 return
             kp_params = bytearray(struct.pack('h', int(kp * 1000)))
             ki_params = bytearray(struct.pack('h', int(ki * 1000)))
@@ -560,12 +561,12 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("pid:", cmd)
+                print("[INFO] pid:", cmd)
             time.sleep(self.__delay_time)
             if forever:
                 time.sleep(.1)
         except:
-            print('---set_pid_param error!---')
+            print('[ERROR] set_pid_param')
             pass
     
     # PID
@@ -577,7 +578,7 @@ class Ros2botMasterDriver(object):
                 state = 0x5F
             cmd = [self.__HEAD, self.__DEVICE_ID, 0x0A, self.FUNC_SET_YAW_PID]
             if kp > 10 or ki > 10 or kd > 10 or kp < 0 or ki < 0 or kd < 0:
-                print("YAW PID value must be:[0, 10.00]")
+                print("[INFO] yaw PID value must be:[0, 10.00]")
                 return
             kp_params = bytearray(struct.pack('h', int(kp * 1000)))
             ki_params = bytearray(struct.pack('h', int(ki * 1000)))
@@ -593,28 +594,28 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("pid:", cmd)
+                print("[INFO] pid:", cmd)
             time.sleep(self.__delay_time)
             if forever:
                 time.sleep(.1)
         except:
-            print('---set_pid_param error!---')
+            print('[ERROR] set_pid_param')
             pass
 
-    # Set car Type
-    def set_car_type(self, car_type):
-        if str(car_type).isdigit():
-            self.__CAR_TYPE = int(car_type) & 0xff
-            cmd = [self.__HEAD, self.__DEVICE_ID, 0x00, self.FUNC_SET_CAR_TYPE, self.__CAR_TYPE, 0x5F]
+    # set robot type
+    def set_bot_type(self, bot_type):
+        if str(bot_type).isdigit():
+            self.__BOT_TYPE = int(bot_type) & 0xff
+            cmd = [self.__HEAD, self.__DEVICE_ID, 0x00, self.FUNC_SET_BOT_TYPE, self.__BOT_TYPE, 0x5F]
             cmd[2] = len(cmd) - 1
             checksum = sum(cmd, self.__COMPLEMENT) & 0xff
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("car_type:", cmd)
+                print("[INFO] bot_type:", cmd)
             time.sleep(.1)
         else:
-            print("set_car_type input invalid")
+            print("[ERROR] set_bot_type input invalid")
 
     # servo_id:[1-255], id=254
     # pulse_value=[96,4000]
@@ -627,7 +628,7 @@ class Ros2botMasterDriver(object):
             if not self.__arm_ctrl_enable:
                 return
             if servo_id < 1 or pulse_value < 96 or pulse_value > 4000 or run_time < 0:
-                print("set uart servo input error")
+                print("[ERROR] set uart servo input error")
                 return
             if run_time > 2000:
                 run_time = 2000
@@ -644,10 +645,10 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("uartServo:", servo_id, int(pulse_value), cmd)
+                print("[INFO] uart servo:", servo_id, int(pulse_value), cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_uart_servo error!---')
+            print('[ERROR] set_uart_servo')
             pass
 
     # ：id:7-9, angle: 7:[0, 225], 8:[30, 270], 9:[30, 180]
@@ -663,39 +664,39 @@ class Ros2botMasterDriver(object):
                     value = self.__arm_convert_value(s_id, s_angle)
                     self.set_uart_servo(s_id, value, run_time)
                 else:
-                    print("angle_1 set error!")
+                    print("[ERROR] angle_1 set")
             elif s_id == 2:
                 if 0 <= s_angle <= 180:
                     value = self.__arm_convert_value(s_id, s_angle)
                     self.set_uart_servo(s_id, value, run_time)
                 else:
-                    print("angle_2 set error!")
+                    print("[ERROR] angle_2 set")
             elif s_id == 3:
                 if 0 <= s_angle <= 180:
                     value = self.__arm_convert_value(s_id, s_angle)
                     self.set_uart_servo(s_id, value, run_time)
                 else:
-                    print("angle_3 set error!")
+                    print("[ERROR] angle_3 set")
             elif s_id == 4:
                 if 0 <= s_angle <= 180:
                     value = self.__arm_convert_value(s_id, s_angle)
                     self.set_uart_servo(s_id, value, run_time)
                 else:
-                    print("angle_4 set error!")
+                    print("[ERROR] angle_4 set")
             elif s_id == 5:
                 if 0 <= s_angle <= 270:
                     value = self.__arm_convert_value(s_id, s_angle)
                     self.set_uart_servo(s_id, value, run_time)
                 else:
-                    print("angle_5 set error!")
+                    print("[ERROR] angle_5 set")
             elif s_id == 6:
                 if 0 <= s_angle <= 180:
                     value = self.__arm_convert_value(s_id, s_angle)
                     self.set_uart_servo(s_id, value, run_time)
                 else:
-                    print("angle_6 set error!")
+                    print("[ERROR] angle_6 set")
         except:
-            print('---set_uart_servo_angle error! ID=%d---' % s_id)
+            print('[ERROR] set_uart_servo_angle ID=%d---' % s_id)
             pass
 
     # servo_id=[1-250]
@@ -704,17 +705,17 @@ class Ros2botMasterDriver(object):
     def set_uart_servo_id(self, servo_id):
         try:
             if servo_id < 1 or servo_id > 250:
-                print("servo id input error!")
+                print("[ERROR] servo id input")
                 return
             cmd = [self.__HEAD, self.__DEVICE_ID, 0x04, self.FUNC_UART_SERVO_ID, int(servo_id)]
             checksum = sum(cmd, self.__COMPLEMENT) & 0xff
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("uartServo_id:", cmd)
+                print("[INFO] uart servo_id:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_uart_servo_id error!---')
+            print('[ERROR] set_uart_servo_id')
             pass
 
     # enable=[0, 1]。
@@ -734,10 +735,10 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("uartServo_torque:", cmd)
+                print("[INFO] uart servo_torque:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_uart_servo_torque error!---')
+            print('[ERROR] set_uart_servo_torque')
             pass
 
     # enable=True，=False
@@ -780,13 +781,13 @@ class Ros2botMasterDriver(object):
                 cmd.append(checksum)
                 self.ser.write(cmd)
                 if self.__debug:
-                    print("arm:", cmd)
-                    print("value:", temp_val)
+                    print("[INFO] arm:", cmd)
+                    print("[INFO] value:", temp_val)
                 time.sleep(self.__delay_time)
             else:
-                print("angle_s input error!")
+                print("[ERROR] angle_s input")
         except:
-            print('---set_uart_servo_angle_array error!---')
+            print('[ERROR] set_uart_servo_angle_array')
             pass
 
 
@@ -803,20 +804,20 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("uartServo_offset:", cmd)
+                print("[INFO] uart servo_offset:", cmd)
             time.sleep(self.__delay_time)
             for i in range(200):
                 if self.__arm_offset_id == servo_id:
                     if self.__debug:
                         if self.__arm_offset_id == 0:
-                            print("Arm Reset Offset Value")
+                            print("[INFO] arm reset offset value")
                         else:
-                            print("Arm Offset State:", self.__arm_offset_id, self.__arm_offset_state, i)
+                            print("[INFO] arm offset state:", self.__arm_offset_id, self.__arm_offset_state, i)
                     return self.__arm_offset_state
                 time.sleep(.001)
             return self.__arm_offset_state
         except:
-            print('---set_uart_servo_offset error!---')
+            print('[ERROR] set_uart_servo_offset')
             pass
 
     # angle=[60, 120]
@@ -841,12 +842,12 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("akm set def angle:", cmd)
+                print("[INFO] akm set def angle:", cmd)
             time.sleep(self.__delay_time)
             if forever:
                 time.sleep(.1)
         except:
-            print('---set_akm_default_angle error!---')
+            print('[ERROR] set_akm_default_angle')
             pass
 
     # angle=[-45, 45]
@@ -862,15 +863,15 @@ class Ros2botMasterDriver(object):
             cmd.append(checksum)
             self.ser.write(cmd)
             if self.__debug:
-                print("akm_steering_angle:", cmd)
+                print("[INFO] akm_steering_angle:", cmd)
             time.sleep(self.__delay_time)
         except:
-            print('---set_akm_steering_angle error!---')
+            print('[ERROR] set_akm_steering_angle')
             pass
 
 
     # flash
-    # Reset the car flash saved data, restore the factory default value
+    # Reset the robot flash saved data, restore the factory default value
     def reset_flash_value(self):
         try:
             cmd = [self.__HEAD, self.__DEVICE_ID, 0x04, self.FUNC_RESET_FLASH, 0x5F]
@@ -882,7 +883,7 @@ class Ros2botMasterDriver(object):
             time.sleep(self.__delay_time)
             time.sleep(.1)
         except:
-            print('---reset_flash_value error!---')
+            print('[ERROR] reset_flash_value error')
             pass
 
     # Clear the cache data automatically sent by the MCU
@@ -912,7 +913,7 @@ class Ros2botMasterDriver(object):
     def get_uart_servo_value(self, servo_id):
         try:
             if servo_id < 1 or servo_id > 250:
-                print("get servo id input error!")
+                print("[ERROR] get servo id input")
                 return
             self.__read_id = 0
             self.__read_val = 0
@@ -925,7 +926,7 @@ class Ros2botMasterDriver(object):
                 time.sleep(.001)
             return -1, -1
         except:
-            print('---get_uart_servo_value error!---')
+            print('[ERROR] get_uart_servo_value')
             return -2, -2
 
     # s_id=[1-6]
@@ -938,46 +939,46 @@ class Ros2botMasterDriver(object):
                 angle = self.__arm_convert_angle(s_id, value)
                 if angle > 180 or angle < 0:
                     if self.__debug:
-                        print("read servo:%d out of range!" % s_id)
+                        print("[ERROR] read servo:%d out of range" % s_id)
                     angle = -1
             elif s_id == 2 and read_id == 2:
                 angle = self.__arm_convert_angle(s_id, value)
                 if angle > 180 or angle < 0:
                     if self.__debug:
-                        print("read servo:%d out of range!" % s_id)
+                        print("[ERROR] read servo:%d out of range" % s_id)
                     angle = -1
             elif s_id == 3 and read_id == 3:
                 angle = self.__arm_convert_angle(s_id, value)
                 if angle > 180 or angle < 0:
                     if self.__debug:
-                        print("read servo:%d out of range!" % s_id)
+                        print("[ERROR] read servo:%d out of range" % s_id)
                     angle = -1
             elif s_id == 4 and read_id == 4:
                 angle = self.__arm_convert_angle(s_id, value)
                 if angle > 180 or angle < 0:
                     if self.__debug:
-                        print("read servo:%d out of range!" % s_id)
+                        print("[ERROR] read servo:%d out of range" % s_id)
                     angle = -1
             elif s_id == 5 and read_id == 5:
                 angle = self.__arm_convert_angle(s_id, value)
                 if angle > 270 or angle < 0:
                     if self.__debug:
-                        print("read servo:%d out of range!" % s_id)
+                        print("[ERROR] read servo:%d out of range" % s_id)
                     angle = -1
             elif s_id == 6 and read_id == 6:
                 angle = self.__arm_convert_angle(s_id, value)
                 if angle > 180 or angle < 0:
                     if self.__debug:
-                        print("read servo:%d out of range!" % s_id)
+                        print("[ERROR] read servo:%d out of range" % s_id)
                     angle = -1
             else:
                 if self.__debug:
-                    print("read servo:%d error!" % s_id)
+                    print("[ERROR] read servo:%d error" % s_id)
             if self.__debug:
-                print("request angle %d: %d, %d" % (s_id, read_id, value))
+                print("[INFO] request angle %d: %d, %d" % (s_id, read_id, value))
             return angle
         except:
-            print('---get_uart_servo_angle error!---')
+            print('[ERROR] get_uart_servo_angle')
             return -2
 
     # [xx, xx, xx, xx, xx, xx]，-1
@@ -1004,13 +1005,13 @@ class Ros2botMasterDriver(object):
                         if self.__read_arm[i] > 0:
                             angle[i] = self.__arm_convert_angle(i+1, self.__read_arm[i])
                     if self.__debug:
-                        print("angle_array:", 30-timeout, angle)
+                        print("[INFO] angle_array:", 30-timeout, angle)
                     break
                 timeout = timeout - 1
                 time.sleep(.001)
             return angle
         except:
-            print('---get_uart_servo_angle_array error!---')
+            print('[ERROR] get_uart_servo_angle_array')
             return [-2, -2, -2, -2, -2, -2]
 
     # a_x, a_y, a_z
@@ -1081,7 +1082,7 @@ class Ros2botMasterDriver(object):
                 ki = float(self.__ki1 / 1000.0)
                 kd = float(self.__kd1 / 1000.0)
                 if self.__debug:
-                    print("get_motion_pid: {0}, {1}, {2}".format(self.__pid_index, [kp, ki, kd], i))
+                    print("[INFO] get_motion_pid: {0}, {1}, {2}".format(self.__pid_index, [kp, ki, kd], i))
                 return [kp, ki, kd]
             time.sleep(.001)
         return [-1, -1, -1]
@@ -1099,7 +1100,7 @@ class Ros2botMasterDriver(object):
                 ki = float(self.__ki1 / 1000.0)
                 kd = float(self.__kd1 / 1000.0)
                 if self.__debug:
-                    print("get_yaw_pid: {0}, {1}, {2}".format(self.__pid_index, [kp, ki, kd], i))
+                    print("[INFO] get_yaw_pid: {0}, {1}, {2}".format(self.__pid_index, [kp, ki, kd], i))
                 return [kp, ki, kd]
             time.sleep(.001)
         return [-1, -1, -1]
@@ -1114,7 +1115,7 @@ class Ros2botMasterDriver(object):
                     val = self.__version_H * 1.0
                     self.__version = val + self.__version_L / 10.0
                     if self.__debug:
-                        print("get_version:V{0}, i:{1}".format(self.__version, i))
+                        print("[INFO] get_version:V{0}, i:{1}".format(self.__version, i))
                     return self.__version
                 time.sleep(.001)
         else:
@@ -1129,16 +1130,16 @@ if __name__ == '__main__':
         try:
             print("try COM%d" % com_index)
             com = 'COM%d' % com_index
-            bot = Rosmaster(1, com, debug=True)
+            bot = Ros2botMasterDriver(1, com, debug=True)
             break
         except:
             if com_index > 256:
-                print("-----------------------No COM Open--------------------------")
+                print("[ERROR] ros2bot no COM open")
                 exit(0)
             continue
-    print("--------------------Open %s---------------------" % com)
+    print("[INFO] ros2bot COM open %s" % com)
 
-    # bot = Rosmaster(com="/dev/ttyUSB0", debug=True)
+    # bot = Ros2botMasterDriver(com="/dev/ttyUSB0", debug=True)
     bot.create_receive_threading()
     time.sleep(.1)
     bot.set_beep(50)
@@ -1171,7 +1172,7 @@ if __name__ == '__main__':
     # angle_array = bot.get_uart_servo_angle_array()
     # print("angle_array:", angle_array)
 
-    # bot.set_car_motion(0, 0, -2)
+    # bot.set_bot_motion(0, 0, -2)
 
     # bot.send_ip_addr("192.168.1.2")
 
@@ -1208,6 +1209,6 @@ if __name__ == '__main__':
             # print("V:", vx, vy, vz)
             time.sleep(.1)
     except KeyboardInterrupt:
-        bot.set_car_motion(0, 0, 0)
+        bot.set_bot_motion(0, 0, 0)
         pass
     exit(0)
