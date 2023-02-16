@@ -6,7 +6,7 @@ import cv2 as cv
 class Ros2botCamera(object):
     
     def __init__(self, camera_id=0, width=640, height=480, debug=False):
-        self.camera_id = camera_id
+        self._camera_id = camera_id
         self._width = width
         self._height = height
         self._state = False
