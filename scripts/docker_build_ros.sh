@@ -1,16 +1,6 @@
 #!/usr/bin/env bash
 
-# 
-# Alternative base images/packages: 
-#
-# Package: 	ros_base
-# Image: 	dustynv/ros:foxy-ros-base-l4t-r35.1.0
-#
-# Package: 	desktop
-# Image: 	dustynv/ros:foxy-desktop-l4t-r35.1.0
-#
-
-BASE_IMAGE="dustynv/ros:foxy-desktop-l4t-r35.1.0"  
+BASE_IMAGE="nvcr.io/nvidia/l4t-jetpack:r35.2.1"  
 ROS_DISTRO="foxy"
 ROS_PACKAGE="desktop"
 

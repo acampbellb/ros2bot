@@ -1,92 +1,190 @@
 #
 # Installs jetson ROS2 container for jetpack 35.1
 #
-# Alternative base images/packages: 
+
 #
-# Package: 	ros_base
-# Image: 	  dustynv/ros:foxy-ros-base-l4t-r35.1.0
-#
-# Package: 	desktop
-# Image: 	  dustynv/ros:foxy-desktop-l4t-r35.1.0
+# BASE image - Jetpack v35.2.1 w/ ROS2
 #
 
-ARG BASE_IMAGE=dustynv/ros:foxy-desktop-l4t-r35.1.0  
-ARG BASE_PACKAGE=desktop
+ARG BASE_IMAGE=nvcr.io/nvidia/l4t-jetpack:r35.2.1
+FROM ${BASE_IMAGE} AS base
 
-FROM dustynv/ros:foxy-desktop-l4t-r35.1.0
-
+ARG ROS_PKG=desktop
 ENV ROS_DISTRO=foxy
-ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}/install
-ENV ROS_WORKSPACE=ros2bot_ws
-ENV ROS_USER=ros
+ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
+ENV ROS_PYTHON_VERSION=3
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV SHELL /bin/bash
+SHELL ["/bin/bash", "-c"]
+
+WORKDIR /tmp
+
+# change the locale from POSIX to UTF-8
+RUN locale-gen en_US en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV PYTHONIOENCODING=utf-8
+
+# set Python3 as default
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+
+#
+# upgrade apt
+#
+
+RUN apt-get update && apt-get -y upgrade \
+    && rm -rf /var/lib/apt/lists/*
+
+# 
+# add the ROS deb repo to the apt sources list
+#
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+		curl \
+		wget \
+		gnupg2 \
+		lsb-release \
+		ca-certificates \
+        sudo \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+# 
+# install development packages
+#
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        apt-utils \
+		build-essential \
+		cmake \
+		git \
+		libbullet-dev \
+		libpython3-dev \
+		python3-colcon-common-extensions \
+		python3-flake8 \
+		python3-pip \
+		python3-numpy=1.24.2 \
+		python3-rosdep \
+		python3-setuptools \
+		python3-vcstool \
+        python3-rosinstall-generator \
+		python3-argcomplete \
+        python3-autopep8 \
+        pylint \
+		libasio-dev \
+		libtinyxml2-dev \
+		libcunit1-dev \
+        zstd \
+        ros-foxy-desktop \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# 
+# install OpenCV (with CUDA)
+#
+
+ARG OPENCV_URL=https://nvidia.box.com/shared/static/5v89u6g5rb62fpz4lh0rz531ajo2t5ef.gz
+ARG OPENCV_DEB=OpenCV-4.5.0-aarch64.tar.gz
+
+COPY scripts/opencv_install.sh /tmp/opencv_install.sh
+RUN cd /tmp && ./opencv_install.sh ${OPENCV_URL} ${OPENCV_DEB}  
+
+# 
+# upgrade cmake - https://stackoverflow.com/a/56690743
+# this is needed to build some of the ROS2 packages
+#
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+		  software-properties-common \
+		  apt-transport-https \
+		  ca-certificates \
+		  gnupg2 \
+		  lsb-release \
+    && sudo add-apt-repository universe \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+RUN pip3 install --upgrade --no-cache-dir --verbose cmake
+RUN cmake --version
+
+#
+# remove other versions of Python3
+# workaround for 'Could NOT find Python3 (missing: Python3_INCLUDE_DIRS Python3_LIBRARIES'
+#
+
+RUN apt purge -y python3.9 libpython3.9* || echo "python3.9 not found, skipping removal" && \
+    ls -ll /usr/bin/python*
+
+# 
+# compile yaml-cpp-0.6, which some ROS packages may use (but is not in the 18.04 apt repo)
+#
+
+RUN git clone --branch yaml-cpp-0.6.0 https://github.com/jbeder/yaml-cpp yaml-cpp-0.6 && \
+    cd yaml-cpp-0.6 && \
+    mkdir build && \
+    cd build && \
+    cmake -DBUILD_SHARED_LIBS=ON .. && \
+    make -j$(nproc) && \
+    cp libyaml-cpp.so.0.6.0 /usr/lib/aarch64-linux-gnu/ && \
+    ln -s /usr/lib/aarch64-linux-gnu/libyaml-cpp.so.0.6.0 /usr/lib/aarch64-linux-gnu/libyaml-cpp.so.0.6    
+
+ENV AMENT_PREFIX_PATH=/opt/ros/foxy
+ENV COLCON_PREFIX_PATH=/opt/ros/foxy
+ENV LD_LIBRARY_PATH=/opt/ros/foxy/lib
+ENV PATH=/opt/ros/foxy/bin:$PATH
+ENV PYTHONPATH=/opt/ros/foxy/lib/python3.8/site-packages
+ENV ROS_VERSION=2
+ENV DEBIAN_FRONTEND=    
+
+#
+# DEVELOP image
+#
+
+FROM base AS develop
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 #
-# install missing GPG keys
+# install dev tools
 #
 
-RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 42D5A192B819C5DA
-
-#
-# install vcstool
-#
-
-RUN curl -s https://packagecloud.io/install/repositories/dirk-thomas/vcstool/script.deb.sh | sudo bash \
-  && sudo apt-get update || true \
-  && sudo apt-get install apt-utils \
-  && sudo apt-get install python3-vcstool \
-  && rm -rf /var/lib/apt/lists/* 
-
-#
-# create a non-root user
-#
-
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
-ARG HOME /home/${ROS_USER}
-
-RUN groupadd --gid $USER_GID $ROS_USER \
-  && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $ROS_USER \
-  && usermod -a -G root $ROS_USER \
-  && usermod -a -G sudo $ROS_USER \
-  # add sudo support for the non-root user
-  && sudo apt-get update \ 
-  && sudo apt-get install -y --no-install-recommends \
-    sudo \ 
-    git-core \
-    bash-completion \
-    python3-argcomplete \
-    python3-autopep8 \
-    pylint \    
-    zstd \
-  && echo $ROS_USER ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$ROS_USER\
-  && chmod 0440 /etc/sudoers.d/$ROS_USER \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  bash-completion \
+  build-essential \
+  cmake \
+  gdb \
+  git \
+  openssh-client \
+  python3-argcomplete \
+  python3-pip \
+  ros-dev-tools \
+  vim \
   && rm -rf /var/lib/apt/lists/* \
-  && echo "if [ -f /opt/ros/${ROS_DISTRO}/install/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/install/setup.bash; fi" >> /home/$ROS_USER/.bashrc
+  && rosdep init || echo "rosdep already initialized"
 
 #
-# install zed sdk version 3.8.2
-#  
+# create non-root ros user
+# 
 
-ARG L4T_MAJOR_VERSION=35
-ARG L4T_MINOR_VERSION=1
-ARG L4T_PATCH_VERSION=0
-ARG ZED_SDK_MAJOR=3
-ARG ZED_SDK_MINOR=8
+ARG USERNAME=ros
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID  
 
-# this environment variable is needed to use the streaming features on Jetson inside a container
-ENV LOGNAME root
-RUN apt-get update || true
-RUN apt-get install --no-install-recommends lsb-release wget less udev sudo apt-transport-https build-essential cmake -y && \
-    echo "# R${L4T_MAJOR_VERSION} (release), REVISION: ${L4T_MINOR_VERSION}.${L4T_PATCH_VERSION}" > /etc/nv_tegra_release ; \
-    wget -q --no-check-certificate -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/${ZED_SDK_MAJOR}.${ZED_SDK_MINOR}/l4t${L4T_MAJOR_VERSION}.${L4T_MINOR_VERSION}/jetsons && \
-    chmod +x ZED_SDK_Linux.run ; ./ZED_SDK_Linux.run silent skip_tools && \
-    rm -rf /usr/local/zed/resources/* \
-    rm -rf ZED_SDK_Linux.run && \
-    rm -rf /var/lib/apt/lists/*
-
-# this symbolic link is needed to use the streaming features on Jetson inside a container
-RUN ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so
+RUN groupadd --gid $USER_GID $USERNAME \
+  && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID --gecos="ROS" --disabled-password -m $USERNAME \
+  # [optional] add sudo support for non-root user
+  && apt-get update \
+  && apt-get install -y sudo git-core bash-completion \
+  && echo $USERNAME ALL=\(ALL\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
+  && chmod 0440 /etc/sudoers.d/$USERNAME \
+  && chown root:root /etc/sudoers.d/$USERNAME \
+  # cleanup
+  && rm -rf /var/lib/apt/lists/* \
+  && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc
 
 #
 # switch from root to ros user
@@ -97,60 +195,18 @@ USER ${USER}
 ENV HOME /home/${USER}
 
 #
-# make libraries and config directories
-#
-
-RUN mkdir -p ${HOME}/ros2bot/libs \
-  && mkdir -p ${HOME}/ros2bot/config \
-  && mkdir -p ${HOME}/ros2bot/app \
-  && mkdir -p ${HOME}/${ROS_WORKSPACE}/src \
-  && chown -R ${ROS_USER} ${HOME}
-COPY --chown=${ROS_USER} --chmod=755 ./config/upstream.repos ${HOME}/ros2bot/config/
-COPY --chown=${ROS_USER} --chmod=755 ./libs/dist/*.whl ${HOME}/ros2bot/libs/
-COPY --chown=${ROS_USER} --chmod=755 ./app ${HOME}/ros2bot/app/ 
-
-# zed python api
-RUN apt-get update -y || true
-RUN apt-get install --no-install-recommends python3 python3-pip python3-dev python3-setuptools build-essential -y && \ 
-    wget -q download.stereolabs.com/zedsdk/pyzed -O /usr/local/zed/get_python_api.py && \
-    python3 /usr/local/zed/get_python_api.py && \
-    python3 -m pip install cython wheel pyserial && \
-    python3 -m pip install flask gevent pyzbar RPi.GPIO && \    
-    python3 -m pip install opencv-python numpy==1.24.2 pyopengl *.whl && \
-    python3 -m pip install ${HOME}/ros2bot/libs/*.whl && \
-    apt-get remove --purge build-essential -y && apt-get autoremove -y && \
-    rm *.whl ; rm -rf /var/lib/apt/lists/*   
-
-#
-# create workspace and build ros packages
-#
-
-#WORKDIR ${HOME}/${ROS_WORKSPACE}
-#RUN mkdir -p ${HOME}/${ROS_WORKSPACE}/src \ 
-#  && cd ${HOME}/${ROS_WORKSPACE}/src \ 
-#  && vcs import ${HOME}/${ROS_WORKSPACE}/src < ${HOME}/${ROS_WORKSPACE}/config/upstream.repos \
-#  && git clone --recursive https://github.com/stereolabs/zed-ros2-wrapper.git \
-#  && git clone https://github.com/stereolabs/zed-ros2-examples.git \
-#  && . ${ROS_ROOT}/setup.sh \
-#  && rosdep update \
-#  && rosdep install -q -r -y \
-#      --from-paths ${HOME}/${ROS_WORKSPACE}/src \
-#      --ignore-src \
-#      --rosdistro ${ROS_DISTRO} \
-#  && cd ${HOME}/${ROS_WORKSPACE} \
-#  && colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release \
-#  && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh \
-#  && echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/setup.bash; fi" >> /home/$ROS_USER/.bashrc
-
-#
 # setup entrypoint script
 #
 
 COPY --chown=${ROS_USER} --chmod=755 ./scripts/ros_entrypoint.sh /ros_entrypoint.sh
 RUN bash -c "chmod +x /ros_entrypoint.sh"
 
-ENV DEBIAN_FRONTEND=
+#
+# finish up
+#
 
+ENV DEBIAN_FRONTEND=
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
 WORKDIR /
+
