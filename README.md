@@ -11,11 +11,11 @@ Jetson / Jetpack based ROS2 docker container workspace with STM32 driver, ZED ca
     $ chmod +x ./*
     ```
 
-2. Build docker container image
+2. Build base docker container image
 
     ```
     $ cd /ros2bot
-    $ ./scripts/docker_build_ros.sh
+    $ ./scripts/docker_build_base.sh
     ```
 
 3. Login to docker hub
@@ -27,12 +27,22 @@ Jetson / Jetpack based ROS2 docker container workspace with STM32 driver, ZED ca
 4. Push docker image to docker hub repository
 
     ```
-    $ docker push <username>/<repository name>:foxy-<ros package>-l4t-ros2bot
+    $ docker push acampbellb/ros2bot:foxy-desktop-l4t-ros2bot-base
     ```
 
-    ROS package can be either 'ros_base' or 'desktop'.
+5. Build develop docker container image
 
-5. Run docker container
+    ```
+    $ cd /ros2bot
+    $ ./scripts/docker_build_dev.sh
+    ```
+6. Push docker image to docker hub repository
+
+    ```
+    $ docker push acampbellb/ros2bot:foxy-desktop-l4t-ros2bot-dev
+    ```
+
+7. Run docker container
 
     ```
     $ sudo ./scripts/docker_run.sh
