@@ -2,7 +2,7 @@
 # ros2bot DEVELOP image
 #
 
-FROM foxy-desktop-l4t-ros2bot-base
+FROM acampbellb/ros2bot:foxy-desktop-l4t-ros2bot-base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -33,7 +33,7 @@ ARG USER_UID=1000
 ARG USER_GID=$USER_UID  
 
 RUN groupadd --gid $USER_GID $USERNAME \
-  && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID --disabled-password -m $USERNAME \
+  && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
   # [optional] add sudo support for non-root user
   && apt-get update \
   && apt-get install -y sudo git-core bash-completion \

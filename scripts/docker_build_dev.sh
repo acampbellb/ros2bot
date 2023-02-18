@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 
-BASE_IMAGE="acampbellb/ros2bot:foxy-desktop-l4t-ros2bot-base"  
-
 build_ros()
 {
-	local base_image=$1
+	local base_image="foxy-desktop-l4t-ros2bot-base"
 	local repository="acampbellb/ros2bot"
-    local dockerfile="Dockerfile-dev"
+    local dockerfile="Dockerfile"
     local container_tag="acampbellb/ros2bot:foxy-desktop-l4t-ros2bot-dev"
 
 	echo ""
