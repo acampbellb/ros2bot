@@ -20,7 +20,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   python3-argcomplete \
   python3-pip \
   ros-dev-tools \
-  vim \
   && rm -rf /var/lib/apt/lists/* \
   && rosdep init || echo "rosdep already initialized"
 
