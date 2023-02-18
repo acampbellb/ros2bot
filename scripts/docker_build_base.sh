@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash 
 
 BASE_IMAGE="nvcr.io/nvidia/l4t-jetpack:r35.2.1"  
 ROS_DISTRO="foxy"
