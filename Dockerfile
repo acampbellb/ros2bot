@@ -47,7 +47,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # switch from root to ros user
 #
 
-ENV USER ${ROS_USER}
+ENV USER ${USERNAME}
 USER ${USER}
 ENV HOME /home/${USER}
 
@@ -129,7 +129,7 @@ RUN sudo git clone https://github.com/acampbellb/ros2bot_packages.git . \
 # setup entrypoint script
 #
 
-COPY --chown=${ROS_USER} --chmod=755 ./scripts/ros_entrypoint.sh /ros_entrypoint.sh
+COPY --chown=${USER} --chmod=755 ./scripts/ros_entrypoint.sh /ros_entrypoint.sh
 RUN bash -c "chmod +x /ros_entrypoint.sh"
 
 #
