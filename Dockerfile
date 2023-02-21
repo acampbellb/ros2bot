@@ -44,29 +44,6 @@ RUN groupadd --gid $USER_GID $USERNAME \
   && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc
 
 #
-# install zed sdk version 3.8.2
-#  
-
-ARG L4T_MAJOR_VERSION=35
-ARG L4T_MINOR_VERSION=1
-ARG ZED_SDK_MAJOR=3
-ARG ZED_SDK_MINOR=8
-
-# this environment variable is needed to use the streaming features on Jetson inside a container
-ENV LOGNAME root
-RUN sudo apt-get update || true
-RUN sudo apt-get install --no-install-recommends lsb-release wget less udev sudo apt-transport-https build-essential cmake -y && \
-    echo "# R${L4T_MAJOR_VERSION} (release), REVISION: ${L4T_MINOR_VERSION}.${L4T_PATCH_VERSION}" > /etc/nv_tegra_release ; \
-    wget -q --no-check-certificate -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/${ZED_SDK_MAJOR}.${ZED_SDK_MINOR}/l4t${L4T_MAJOR_VERSION}.${L4T_MINOR_VERSION}/jetsons && \
-    sudo chmod +x ZED_SDK_Linux.run ; ./ZED_SDK_Linux.run silent skip_tools && \
-    sudo rm -rf /usr/local/zed/resources/* \
-    sudo rm -rf ZED_SDK_Linux.run && \
-    sudo rm -rf /var/lib/apt/lists/*
-
-# this symbolic link is needed to use the streaming features on Jetson inside a container
-RUN ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so
-
-#
 # switch from root to ros user
 #
 
@@ -87,13 +64,37 @@ ENV HOME /home/${USER}
 #     rm *.whl ; rm -rf /var/lib/apt/lists/*  
 
 #
+# install zed sdk version 3.8.2
+#  
+
+ARG L4T_MAJOR_VERSION=35
+ARG L4T_MINOR_VERSION=1
+ARG ZED_SDK_MAJOR=3
+ARG ZED_SDK_MINOR=8
+
+# this environment variable is needed to use the streaming features on Jetson inside a container
+ENV LOGNAME root
+
+WORKDIR ${HOME}
+RUN sudo apt-get update || true
+RUN sudo apt-get install --no-install-recommends lsb-release wget less udev sudo apt-transport-https build-essential cmake -y && \
+    sudo echo "# R${L4T_MAJOR_VERSION} (release), REVISION: ${L4T_MINOR_VERSION}.${L4T_PATCH_VERSION}" > /etc/nv_tegra_release ; \
+    wget -q --no-check-certificate -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/${ZED_SDK_MAJOR}.${ZED_SDK_MINOR}/l4t${L4T_MAJOR_VERSION}.${L4T_MINOR_VERSION}/jetsons && \
+    sudo chmod +x ZED_SDK_Linux.run ; ./ZED_SDK_Linux.run silent skip_tools && \
+    sudo rm -rf /usr/local/zed/resources/* \
+    sudo rm -rf ZED_SDK_Linux.run && \
+    sudo rm -rf /var/lib/apt/lists/*
+
+# this symbolic link is needed to use the streaming features on Jetson inside a container
+RUN sudo ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so
+
+#
 # create app / libraries directories
 #
 
 ENV ROS_WORKSPACE=ros2bot_ws
 
 WORKDIR ${HOME}
-
 RUN mkdir -p ./ros2bot/libs \
   && mkdir -p ./ros2bot/app \
   && mkdir -p ./${ROS_WORKSPACE}/src
@@ -106,7 +107,6 @@ COPY --chown=${USER} --chmod=755 ./app ./ros2bot/app/
 #
 
 WORKDIR ${HOME}/${ROS_WORKSPACE}/src
-
 RUN sudo git clone https://github.com/acampbellb/ros2bot_packages.git . \
   && sudo git clone https://github.com/Slamtec/sllidar_ros2.git \
   && sudo git clone https://github.com/ros-perception/image_common.git \
@@ -123,7 +123,6 @@ RUN sudo git clone https://github.com/acampbellb/ros2bot_packages.git . \
   # && colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release \
   # && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh \
   # && echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/setup.bash; fi" >> /root/.bashrc
-
 
 #
 # setup entrypoint script
