@@ -101,7 +101,7 @@ RUN python3 -m pip install pyserial flask gevent pyzbar RPi.GPIO && \
 WORKDIR ${HOME}/${ROS_WORKSPACE}/src
 RUN sudo git clone https://github.com/acampbellb/ros2bot_packages.git \
   && sudo git clone https://github.com/Slamtec/sllidar_ros2.git \
-  #&& sudo git clone https://github.com/ros-perception/image_common.git \
+  && sudo git clone https://github.com/ros-perception/image_common.git --branch 3.0.0 --single-branch \
   && sudo git clone --recursive https://github.com/stereolabs/zed-ros2-wrapper.git \
   && sudo git clone https://github.com/stereolabs/zed-ros2-examples.git \
   && . ${ROS_ROOT}/setup.sh \
