@@ -101,20 +101,23 @@ RUN python3 -m pip install pyserial flask gevent pyzbar RPi.GPIO && \
 WORKDIR ${HOME}/${ROS_WORKSPACE}/src
 RUN sudo git clone https://github.com/acampbellb/ros2bot_packages.git \
   && sudo git clone https://github.com/Slamtec/sllidar_ros2.git \
-  && sudo git clone https://github.com/ros-perception/image_common.git \
+  #&& sudo git clone https://github.com/ros-perception/image_common.git \
   && sudo git clone --recursive https://github.com/stereolabs/zed-ros2-wrapper.git \
   && sudo git clone https://github.com/stereolabs/zed-ros2-examples.git \
-  && . ${ROS_ROOT}/setup.sh 
+  && . ${ROS_ROOT}/setup.sh \
+  && sudo rosdep fix-permissions \
+  && rosdep update \
+  && sudo apt-get update \
+  && sudo -H apt-get install -y ros-foxy-ament-cmake-clang-format \
+  && rosdep install -q -r -y \
+    --from-paths . \
+    --ignore-src \
+    --rosdistro ${ROS_DISTRO} 
 
-  # && sudo rosdep update \
-  # && sudo rosdep install -q -r -y \
-  #   --from-paths . \
-  #   --ignore-src \
-  #   --rosdistro ${ROS_DISTRO} \
-  # && cd ${HOME}/${ROS_WORKSPACE} \
-  # && colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release \
-  # && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh \
-  # && echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/setup.bash; fi" >> /root/.bashrc
+  #&& cd ${HOME}/${ROS_WORKSPACE} \
+  #&& colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release \
+  #&& . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh \
+  #&& echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/setup.bash; fi" >> /root/.bashrc 
 
 #
 # setup entrypoint script
