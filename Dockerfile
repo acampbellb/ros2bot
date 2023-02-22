@@ -51,18 +51,6 @@ ENV USER ${USERNAME}
 USER ${USER}
 ENV HOME /home/${USER}
 
-# zed python api
-# RUN apt-get update -y || true
-# RUN apt-get install --no-install-recommends python3 python3-pip python3-dev python3-setuptools build-essential -y && \ 
-#     wget -q download.stereolabs.com/zedsdk/pyzed -O /usr/local/zed/get_python_api.py && \
-#     python3 /usr/local/zed/get_python_api.py && \
-#     python3 -m pip install cython wheel pyserial && \
-#     python3 -m pip install flask gevent pyzbar RPi.GPIO && \    
-#     python3 -m pip install opencv-python numpy==1.24.2 pyopengl *.whl && \
-#     python3 -m pip install ${HOME}/ros2bot/libs/*.whl && \
-#     apt-get remove --purge build-essential -y && apt-get autoremove -y && \
-#     rm *.whl ; rm -rf /var/lib/apt/lists/*  
-
 #
 # install zed sdk version 3.8.2
 #  
@@ -89,7 +77,7 @@ RUN sudo apt-get install --no-install-recommends lsb-release wget less udev sudo
 RUN sudo ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so
 
 #
-# create app / libraries directories
+# create app & libs
 #
 
 ENV ROS_WORKSPACE=ros2bot_ws
@@ -102,12 +90,15 @@ RUN mkdir -p ./ros2bot/libs \
 COPY --chown=${USER} --chmod=755 ./libs/dist/*.whl ./ros2bot/libs/
 COPY --chown=${USER} --chmod=755 ./app ./ros2bot/app/ 
 
+RUN python3 -m pip install pyserial flask gevent pyzbar RPi.GPIO && \
+  python3 -m pip install ${HOME}/ros2bot/libs/*.whl
+
 #
 # create workspace and build packages
 #
 
 WORKDIR ${HOME}/${ROS_WORKSPACE}/src
-RUN sudo git clone https://github.com/acampbellb/ros2bot_packages.git . \
+RUN sudo git clone https://github.com/acampbellb/ros2bot_packages.git \
   && sudo git clone https://github.com/Slamtec/sllidar_ros2.git \
   && sudo git clone https://github.com/ros-perception/image_common.git \
   && sudo git clone --recursive https://github.com/stereolabs/zed-ros2-wrapper.git \

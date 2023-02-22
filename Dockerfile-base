@@ -1,13 +1,13 @@
 #
-# Installs jetson ROS2 container for jetpack 35.1 
+# Installs jetson ROS2 container for jetpack 35.1.0 
 #
 
 #
-# BASE image - Jetpack v35.2.1 w/ ROS2
+# BASE image - Jetpack v35.1.0 w/ ROS2
 #
 
-ARG BASE_IMAGE=nvcr.io/nvidia/l4t-jetpack:r35.2.1
-FROM nvcr.io/nvidia/l4t-jetpack:r35.2.1
+ARG BASE_IMAGE=nvcr.io/nvidia/l4t-jetpack:r35.1.0
+FROM nvcr.io/nvidia/l4t-jetpack:r35.1.0
 
 ARG ROS_PKG=desktop
 ENV ROS_DISTRO=foxy
