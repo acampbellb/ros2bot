@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   openssh-client \
   python3-argcomplete \
   python3-pip \
+  protobuf-compiler \
   ros-dev-tools \
   && rm -rf /var/lib/apt/lists/* \
   && rosdep init || echo "rosdep already initialized"
