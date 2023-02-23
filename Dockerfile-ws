@@ -1,0 +1,33 @@
+#
+# ros2bot WORKSPACE image 
+#
+
+FROM acampbellb/ros2bot:foxy-desktop-l4t-ros2bot-dev
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+#
+# build workspace packages
+#
+
+WORKDIR ${HOME}/${ROS_WORKSPACE}
+RUN colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release \
+  && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh \
+  && echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/setup.bash; fi" >> /root/.bashrc 
+
+#
+# setup entrypoint script
+#
+
+COPY --chown=${USER} --chmod=755 ./scripts/ros_entrypoint.sh /ros_entrypoint.sh
+RUN bash -c "chmod +x /ros_entrypoint.sh"
+
+#
+# finish up
+#
+
+ENV DEBIAN_FRONTEND=
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]
+WORKDIR /
+

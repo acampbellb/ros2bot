@@ -123,7 +123,11 @@ ENV LD_LIBRARY_PATH=/opt/ros/foxy/lib
 ENV PATH=/opt/ros/foxy/bin:$PATH
 ENV PYTHONPATH=/opt/ros/foxy/lib/python3.8/site-packages
 ENV ROS_VERSION=2
-ENV DEBIAN_FRONTEND=    
 
+#
+# finish up
+#
+
+ENV DEBIAN_FRONTEND=   
 CMD ["bash"]
 WORKDIR /
