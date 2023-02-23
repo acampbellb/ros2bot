@@ -7,6 +7,15 @@ FROM acampbellb/ros2bot:foxy-desktop-l4t-ros2bot-dev
 ENV DEBIAN_FRONTEND=noninteractive
 
 #
+# set current user
+#
+
+ARG USERNAME=ros
+ENV USER ${USERNAME}
+USER ${USER}
+ENV HOME /home/${USER}
+
+#
 # build workspace packages
 #
 
