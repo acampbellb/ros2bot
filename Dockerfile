@@ -112,12 +112,12 @@ RUN sudo git clone https://github.com/acampbellb/ros2bot_packages.git \
   && rosdep install -q -r -y \
     --from-paths . \
     --ignore-src \
-    --rosdistro ${ROS_DISTRO} \
-  && cd ${HOME}/${ROS_WORKSPACE} \
-  && colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release \
-  && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh \
-  && echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/setup.bash; fi" >> /root/.bashrc 
-
+    --rosdistro ${ROS_DISTRO} 
+  #&& cd ${HOME}/${ROS_WORKSPACE} \
+  #&& colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release \
+  #&& . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh \
+  #&& echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/setup.bash; fi" >> /root/.bashrc 
+#
 #
 # setup entrypoint script
 #
