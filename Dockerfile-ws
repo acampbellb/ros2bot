@@ -16,6 +16,13 @@ USER ${USER}
 ENV HOME /home/${USER}
 
 #
+# update library path
+#
+
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/lib/aarch64-linux-gnu/tegra"
+RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra" >> ~/.bashrc
+
+#
 # build workspace packages
 #
 
