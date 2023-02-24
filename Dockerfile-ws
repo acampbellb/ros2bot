@@ -20,7 +20,7 @@ ENV HOME /home/${USER}
 #
 
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/lib/aarch64-linux-gnu/tegra"
-RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/tegra" >> ~/.bashrc
+RUN echo ${LD_LIBRARY_PATH}
 
 #
 # build workspace packages
@@ -36,7 +36,7 @@ RUN echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/aarch64-linux-gnu/teg
 #     --rosdistro ${ROS_DISTRO}
 
 WORKDIR ${HOME}/${ROS_WORKSPACE}
-RUN colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release \
+RUN colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release \
   && . ${HOME}/${ROS_WORKSPACE}/install/local_setup.sh \
   && echo "if [ -f ${HOME}/${ROS_WORKSPACE}/install/setup.bash ]; then source ${HOME}/${ROS_WORKSPACE}/install/setup.bash; fi" >> /root/.bashrc 
 

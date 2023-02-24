@@ -75,7 +75,9 @@ RUN sudo apt-get install --no-install-recommends lsb-release wget less udev sudo
     sudo rm -rf /var/lib/apt/lists/*
 
 # this symbolic link is needed to use the streaming features on Jetson inside a container
-RUN sudo ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so
+RUN sudo ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so \
+  && sudo ln -sf /usr/lib/aarch64-linux-gnu/tegra/libcuda.so.1 /usr/lib/aarch64-linux-gnu/libcuda.so.1 \
+  && sudo ln -sf /usr/lib/aarch64-linux-gnu/tegra/libnvbuf_utils.so.1.0.0 /usr/lib/aarch64-linux-gnu/libnvbuf_utils.so.1.0.0
 
 #
 # create app & libs
