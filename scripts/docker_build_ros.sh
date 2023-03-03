@@ -1,6 +1,6 @@
 #!/usr/bin/env bash 
 
-BASE_IMAGE="nvcr.io/nvidia/l4t-jetpack:r35.1.0"  
+BASE_IMAGE="dustynv/ros:foxy-desktop-l4t-r35.1.0"  
 ROS_DISTRO="foxy"
 ROS_PACKAGE="desktop"
 
@@ -18,8 +18,8 @@ build_ros()
 	local base_image=$3
 	local extra_tag=$4
 	local repository="acampbellb/ros2bot"
-    local dockerfile="Dockerfile-base"
-    local container_tag="${repository}:${distro}-${extra_tag}-l4t-ros2bot-base"
+    local dockerfile="Dockerfile"
+    local container_tag="${repository}:${distro}-${extra_tag}-l4t-ros2bot"
 
 	echo ""
 	echo "Building container $container_tag"
