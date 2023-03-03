@@ -10,4 +10,4 @@ shift
 
 echo "Building $CONTAINER container..."
 
-sudo DOCKER_BUILDKIT=1 docker build --network=host -t $CONTAINER -f $DOCKERFILE "$@" .
+sudo DOCKER_BUILDKIT=1 docker build --no-cache --network=host -t $CONTAINER -f $DOCKERFILE "$@" .
