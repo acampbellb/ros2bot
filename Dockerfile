@@ -25,6 +25,12 @@ RUN apt-get update || true && apt-get install -y --no-install-recommends apt-uti
   rm -rf /var/lib/apt/lists/*
 
 #
+# install missing GPG keys
+#
+
+RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 42D5A192B819C5DA  
+
+#
 # define timezone
 #
 
