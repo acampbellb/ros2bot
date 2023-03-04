@@ -65,6 +65,9 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
     libpq-dev \
     zstd \
     usbutils \    
+    ros-foxy-ament-cmake-clang-format \
+    # https://github.com/ros2/rclcpp/issues/1335
+    ros-foxy-rmw-cyclonedds-cpp \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get clean
 
@@ -163,7 +166,6 @@ RUN sudo git clone https://github.com/acampbellb/ros2bot_packages.git \
 
 WORKDIR ${HOME}/${ROS_WORKSPACE}
 RUN sudo apt-get update -y || true \
-  && sudo -H apt-get install -y ros-foxy-ament-cmake-clang-format \
   && sudo rosdep fix-permissions \
   && rosdep update \
   && rosdep install --from-paths src --ignore-src -r -y \
