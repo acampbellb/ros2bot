@@ -89,6 +89,12 @@ RUN groupadd --gid $USER_GID $USERNAME \
   && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc
 
 #
+# set tegra release
+#
+
+RUN echo "# R${L4T_MAJOR} (release), REVISION: ${L4T_MINOR}" > /etc/nv_tegra_release
+
+#
 # switch from root to ros user
 #
 
@@ -103,17 +109,17 @@ ENV HOME /home/${USER}
 ARG ZED_SDK_MAJOR=3
 ARG ZED_SDK_MINOR=8
 
-RUN echo "# R${L4T_MAJOR} (release), REVISION: ${L4T_MINOR}" > /etc/nv_tegra_release && \
-  apt-get update -y || true && \
-  apt-get install -y --no-install-recommends zstd wget less cmake curl gnupg2 \
-  build-essential python3 python3-pip python3-dev python3-setuptools libusb-1.0-0-dev -y && \
-  pip install protobuf && \
-  wget -q --no-check-certificate -O ZED_SDK_Linux_JP.run \
-  https://download.stereolabs.com/zedsdk/${ZED_SDK_MAJOR}.${ZED_SDK_MINOR}/l4t${L4T_MAJOR}.${L4T_MINOR}/jetsons && \
-  chmod +x ZED_SDK_Linux_JP.run ; ./ZED_SDK_Linux_JP.run silent skip_tools && \
-  rm -rf /usr/local/zed/resources/* && \
-  rm -rf ZED_SDK_Linux_JP.run && \
-  rm -rf /var/lib/apt/lists/*
+WORKDIR ${HOME}
+RUN sudo apt-get update -y || true \
+  && sudo apt-get install -y --no-install-recommends zstd wget less cmake curl gnupg2 \
+     build-essential python3 python3-pip python3-dev python3-setuptools libusb-1.0-0-dev -y \
+  && pip install protobuf \
+  && wget -q --no-check-certificate -O ZED_SDK_Linux_JP.run \
+     https://download.stereolabs.com/zedsdk/${ZED_SDK_MAJOR}.${ZED_SDK_MINOR}/l4t${L4T_MAJOR}.${L4T_MINOR}/jetsons \
+  && chmod +x ZED_SDK_Linux_JP.run ; ./ZED_SDK_Linux_JP.run silent skip_tools \
+  && sudo rm -rf /usr/local/zed/resources/* \
+  && sudo rm -rf ZED_SDK_Linux_JP.run \
+  && sudo rm -rf /var/lib/apt/lists/*
 
 #
 # install app & libs
