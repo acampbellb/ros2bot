@@ -4,11 +4,7 @@
 # This script runs the docker ROS container image.
 #
 
-<<<<<<< HEAD
 CONTAINER_IMAGE="acampbellb/ros2bot:foxy-desktop-l4t-ros2bot"
-=======
-CONTAINER_IMAGE="acampbellb/ros2bot:foxy-desktop-l4t-ros2bot-dev"
->>>>>>> edce293ff91282b2cb1bb85c787e570a065bf4b7
 WORKSPACE_NAME="ros2bot_ws"
 INITIAL_COMMAND=" $@ "
 
