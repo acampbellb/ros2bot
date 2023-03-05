@@ -106,6 +106,14 @@ USER ${USER}
 ENV HOME /home/${USER}
 
 #
+# install rplidar sdk
+#
+
+WORKDIR ${HOME}
+RUN sudo git clone https://github.com/Slamtec/rplidar_sdk.git \
+  && sudo make -C ${HOME}/rplidar_sdk
+
+#
 # install zed sdk 
 # 
 
@@ -155,10 +163,10 @@ RUN sudo git clone https://github.com/acampbellb/ros2bot_packages.git \
   && sudo git clone https://github.com/Slamtec/sllidar_ros2.git \
   && sudo git clone https://github.com/ros-perception/image_common.git --branch 3.0.0 --single-branch \
   && sudo git clone --recursive https://github.com/stereolabs/zed-ros2-wrapper.git \
-  && sudo git clone https://github.com/stereolabs/zed-ros2-examples.git 
-  # && wget https://github.com/ros/xacro/archive/refs/tags/${XACRO_VERSION}.tar.gz -O - | tar -xvz && mv xacro-${XACRO_VERSION} xacro \
-  # && wget https://github.com/ros/diagnostics/archive/refs/tags/${DIAGNOSTICS_VERSION}.tar.gz -O - | tar -xvz && mv diagnostics-${DIAGNOSTICS_VERSION} diagnostics \
-  # && wget https://github.com/ament/ament_lint/archive/refs/tags/${AMENT_LINT_VERSION}.tar.gz -O - | tar -xvz && mv ament_lint-${AMENT_LINT_VERSION} ament-lint 
+  && sudo git clone https://github.com/stereolabs/zed-ros2-examples.git \
+  && wget https://github.com/ros/xacro/archive/refs/tags/${XACRO_VERSION}.tar.gz -O - | tar -xvz && mv xacro-${XACRO_VERSION} xacro \
+  && wget https://github.com/ros/diagnostics/archive/refs/tags/${DIAGNOSTICS_VERSION}.tar.gz -O - | tar -xvz && mv diagnostics-${DIAGNOSTICS_VERSION} diagnostics \
+  && wget https://github.com/ament/ament_lint/archive/refs/tags/${AMENT_LINT_VERSION}.tar.gz -O - | tar -xvz && mv ament_lint-${AMENT_LINT_VERSION} ament-lint 
 
 #
 # install dependencies
