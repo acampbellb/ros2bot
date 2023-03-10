@@ -10,7 +10,7 @@ import threading
 class Ros2botMasterDriver(object):
     __uart_state = 0
 
-    def __init__(self, bot_type=1, com="/dev/myserial", delay=.002, debug=False):
+    def __init__(self, bot_type=1, com="/dev/r2bserial", delay=.002, debug=False):
         # com = "COM30"
         # com="/dev/ttyTHS1"
         # com="/dev/ttyUSB0"
