@@ -9,7 +9,7 @@ import serial
 # v0.0.1
 class Ros2botSpeachDriver(object):
 
-    def __init__(self, com="/dev/myspeech"):
+    def __init__(self, com="/dev/r2bspeach"):
         # com="/dev/ttyUSB0"
         self.ser = serial.Serial(com, 115200)
         if self.ser.isOpen():
