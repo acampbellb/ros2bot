@@ -28,6 +28,13 @@ and the speach board. These python libraries are packaged in python wheels.
     $ pip3 install check-wheel-contents
     ```
 
+    or
+
+    ```
+    $ pip3 install --break-system-packages wheel
+    $ pip3 install --break-system-packages check-wheel-contents
+    ```
+
 4.  Build and verify the master board Library
 
     ```
@@ -49,11 +56,11 @@ the directory that contains the *.whl files, and executing pip3.
 
     ```
     $ cd ros2bot/libs/ros2bot_master_lib/dist
-    $ pip3 install ros2bot_master_lib*.whl
+    $ pip3 install --break-system-packages ros2bot_master_lib*.whl
     ```
     ```
     $ cd ros2bot/libs/ros2bot_speach_lib/dist
-    $ pip3 install ros2bot_speach_lib*.whl
+    $ pip3 install --break-system-packages ros2bot_speach_lib*.whl
     ```
 
 To install both (in the same directory) at once:
