@@ -36,11 +36,18 @@ driver enables UART servo torque.
 Ubuntu 24.04 protects its system Python from pip installs (PEP 668). Install the wheel in a virtual environment instead:
 ```
 cd ~/Ros2bot/libs/ros2bot_master_lib
+python3 setup.py bdist_wheel
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install dist/ros2bot_master_lib*.whl
+python -m pip install --upgrade dist/ros2bot_master_lib-0.0.2-py3-none-any.whl
 ```
+
+When making a new release after changing the library, increment `version` in
+`setup.py` (for example, change `0.0.2` to `0.0.3`), rebuild the wheel, and
+install that exact wheel with `--upgrade`. This lets pip recognize the new
+release without `--force-reinstall`. Use the wheel filename produced by the
+build if its Python/platform tags differ.
 
 Then, with the environment activated, you can test it:
 ```

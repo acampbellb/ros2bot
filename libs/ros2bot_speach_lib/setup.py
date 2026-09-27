@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="ros2bot_speach_lib",
-    version="0.0.1",
+    version="0.0.2",
     author="",
     author_email="",
     description="ros2bot speach board driver library",
