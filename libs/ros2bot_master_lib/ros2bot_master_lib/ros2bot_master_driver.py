@@ -131,12 +131,12 @@ class Ros2botMasterDriver(object):
 
     def close(self):
         self.__receive_stop.set()
+        thread = self.__receive_thread
+        if thread is not None and thread.is_alive() and thread is not threading.current_thread():
+            thread.join()
         if self.ser.is_open:
             self.ser.close()
             print("[INFO] ros2bot serial comm closed")
-        thread = self.__receive_thread
-        if thread is not None and thread.is_alive() and thread is not threading.current_thread():
-            thread.join(timeout=1.0)
 
     # According to the type of data frame to make the corresponding parsing
     def __parse_data(self, ext_type, ext_data):
@@ -260,7 +260,7 @@ class Ros2botMasterDriver(object):
                             print("[ERROR] invalid packet payload:", ext_len, ext_type, ext_data)
                 elif self.__debug:
                     print("[ERROR] check sum error:", ext_len, ext_type, list(ext_data))
-        except (serial.SerialException, OSError) as exc:
+        except (serial.SerialException, OSError, TypeError) as exc:
             if not self.__receive_stop.is_set() and self.__debug:
                 print("[ERROR] serial receive stopped:", exc)
 
@@ -1132,14 +1132,15 @@ class Ros2botMasterDriver(object):
     def get_version(self):
         if self.__version_H == 0:
             self.__request_data(self.FUNC_VERSION)
-            for i in range(0, 20):
+            deadline = time.monotonic() + 1.0
+            while time.monotonic() < deadline:
                 if self.__version_H != 0:
                     val = self.__version_H * 1.0
                     self.__version = val + self.__version_L / 10.0
                     if self.__debug:
-                        print("[INFO] get_version:V{0}, i:{1}".format(self.__version, i))
+                        print("[INFO] get_version:V{0}".format(self.__version))
                     return self.__version
-                time.sleep(.001)
+                time.sleep(.01)
         else:
             return self.__version
         return -1
