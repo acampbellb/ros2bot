@@ -29,3 +29,26 @@ available functions and options:
 
 `void_write` accepts values from 0 to 999. A connected speech board is required
 to test either function.
+
+## Install & Test w/in Environment
+
+Ubuntu 24.04 protects its system Python from pip installs (PEP 668). Install the wheel in a virtual environment instead:
+```
+cd ~/Ros2bot/libs/ros2bot_speach_lib
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install dist/ros2bot_speach_lib*.whl
+```
+
+Then, with the environment activated, you can test it:
+```
+python test_speach_lib.py --help
+python test_speach_lib.py get_version --port /dev/r2bserial
+```
+
+If creating the environment fails because venv is unavailable, install Ubuntu’s support package first:
+```
+sudo apt update
+sudo apt install python3-venv
+```

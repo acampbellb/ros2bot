@@ -30,3 +30,28 @@ available functions and options:
 The script also supports telemetry functions such as `get_motion_data` and
 `get_battery_voltage`. A connected master board is required. Initializing the
 driver enables UART servo torque.
+
+## Install & Test w/in Environment
+
+Ubuntu 24.04 protects its system Python from pip installs (PEP 668). Install the wheel in a virtual environment instead:
+```
+cd ~/Ros2bot/libs/ros2bot_master_lib
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install dist/ros2bot_master_lib*.whl
+```
+
+Then, with the environment activated, you can test it:
+```
+python test_master_lib.py --help
+python test_master_lib.py get_version --port /dev/r2bserial
+```
+
+If creating the environment fails because venv is unavailable, install Ubuntu’s support package first:
+```
+sudo apt update
+sudo apt install python3-venv
+```
+
+
