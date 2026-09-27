@@ -8,15 +8,15 @@ import threading
 
 # v0.0.1
 class Ros2botMasterDriver(object):
-    __uart_state = 0
-
     def __init__(self, bot_type=1, com="/dev/r2bserial", delay=.002, debug=False):
         # com = "COM30"
         # com="/dev/ttyTHS1"
         # com="/dev/ttyUSB0"
         # com="/dev/ttyAMA0"
 
-        self.ser = serial.Serial(com, 115200)
+        self.ser = serial.Serial(com, 115200, timeout=0.1)
+        self.__receive_stop = threading.Event()
+        self.__receive_thread = None
 
         self.__delay_time = delay
         self.__debug = debug
@@ -124,9 +124,19 @@ class Ros2botMasterDriver(object):
         time.sleep(.002)
 
     def __del__(self):
-        self.ser.close()
-        self.__uart_state = 0
-        print("[INFO] ros2bot serial comm closed")
+        try:
+            self.close()
+        except Exception:
+            pass
+
+    def close(self):
+        self.__receive_stop.set()
+        if self.ser.is_open:
+            self.ser.close()
+            print("[INFO] ros2bot serial comm closed")
+        thread = self.__receive_thread
+        if thread is not None and thread.is_alive() and thread is not threading.current_thread():
+            thread.join(timeout=1.0)
 
     # According to the type of data frame to make the corresponding parsing
     def __parse_data(self, ext_type, ext_data):
@@ -220,30 +230,39 @@ class Ros2botMasterDriver(object):
 
     # receive data
     def __receive_data(self):
-        while True:
-            head1 = bytearray(self.ser.read())[0]
-            if head1 == self.__HEAD:
-                head2 = bytearray(self.ser.read())[0]
-                check_sum = 0
-                rx_check_num = 0
-                if head2 == self.__DEVICE_ID - 1:
-                    ext_len = bytearray(self.ser.read())[0]
-                    ext_type = bytearray(self.ser.read())[0]
-                    ext_data = []
-                    check_sum = ext_len + ext_type
-                    data_len = ext_len - 2
-                    while len(ext_data) < data_len:
-                        value = bytearray(self.ser.read())[0]
-                        ext_data.append(value)
-                        if len(ext_data) == data_len:
-                            rx_check_num = value
-                        else:
-                            check_sum = check_sum + value
-                    if check_sum % 256 == rx_check_num:
+        try:
+            while not self.__receive_stop.is_set():
+                head1 = self.ser.read(1)
+                if not head1 or head1[0] != self.__HEAD:
+                    continue
+
+                head2 = self.ser.read(1)
+                if not head2 or head2[0] != self.__DEVICE_ID - 1:
+                    continue
+
+                header = self.ser.read(2)
+                if len(header) != 2:
+                    continue
+                ext_len, ext_type = header
+                data_len = ext_len - 2
+                if data_len < 1:
+                    continue
+
+                ext_data = self.ser.read(data_len)
+                if len(ext_data) != data_len:
+                    continue
+                check_sum = (ext_len + ext_type + sum(ext_data[:-1])) & 0xff
+                if check_sum == ext_data[-1]:
+                    try:
                         self.__parse_data(ext_type, ext_data)
-                    else:
+                    except (IndexError, struct.error):
                         if self.__debug:
-                            print("[ERROR] check sum error:", ext_len, ext_type, ext_data)
+                            print("[ERROR] invalid packet payload:", ext_len, ext_type, ext_data)
+                elif self.__debug:
+                    print("[ERROR] check sum error:", ext_len, ext_type, list(ext_data))
+        except (serial.SerialException, OSError) as exc:
+            if not self.__receive_stop.is_set() and self.__debug:
+                print("[ERROR] serial receive stopped:", exc)
 
     # Request data, function: corresponding function word to return data, parm: parameter passed in
     def __request_data(self, function, param=0):
@@ -303,16 +322,19 @@ class Ros2botMasterDriver(object):
     # Start the thread that receives and processes data
     def create_receive_thread(self):
         try:
-            if self.__uart_state == 0:
-                name1 = "task_serial_receive"
-                task_receive = threading.Thread(target=self.__receive_data, name=name1)
-                task_receive.setDaemon(True)
-                task_receive.start()
+            if self.__receive_thread is None or not self.__receive_thread.is_alive():
+                if not self.ser.is_open:
+                    return
+                self.__receive_stop.clear()
+                self.__receive_thread = threading.Thread(
+                    target=self.__receive_data,
+                    name="task_serial_receive",
+                    daemon=True,
+                )
+                self.__receive_thread.start()
                 print("[INFO] ros2bot create receive threading")
-                self.__uart_state = 1
-        except:
+        except Exception:
             print('[ERROR] create_receive_threading')
-            pass
     
     # enable=True, enable=False，
     # forever=True，=False
@@ -1140,7 +1162,7 @@ if __name__ == '__main__':
     print("[INFO] ros2bot COM open %s" % com)
 
     # bot = Ros2botMasterDriver(com="/dev/ttyUSB0", debug=True)
-    bot.create_receive_threading()
+    bot.create_receive_thread()
     time.sleep(.1)
     bot.set_beep(50)
     time.sleep(.1)
