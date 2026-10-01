@@ -31,6 +31,26 @@ The script also supports telemetry functions such as `get_motion_data` and
 `get_battery_voltage`. A connected master board is required. Initializing the
 driver enables UART servo torque.
 
+## Serial Port Setup (Linux)
+
+For the verified robot-board CH340 adapter (`1a86:7523`, USB revision `8134`),
+use the setup script to create a stable `/dev/r2bserial` alias on any USB port
+or hub port. Connect and power the board first; the `ch341` kernel driver must
+be installed and bound. The setup refuses ambiguous adapters and conflicting
+udev rules rather than assigning the alias to the wrong device.
+
+```bash
+bash setup_master_board.sh --check
+bash setup_master_board.sh
+```
+
+The second command installs a udev rule via `sudo`, verifies the alias, and
+requests the board version using this library's `.venv` (or system `python3`).
+It exits with a diagnostic if the driver, Python dependencies, permissions,
+alias, or board response are missing. Opening the driver enables UART servo
+torque. See the master-board troubleshooting guide in `~/Documents` for the
+observed device mapping and kernel-driver instructions.
+
 ## Install & Test w/in Environment
 
 Ubuntu 24.04 protects its system Python from pip installs (PEP 668). Install the wheel in a virtual environment instead:
@@ -59,6 +79,21 @@ If creating the environment fails because venv is unavailable, install Ubuntu’
 ```
 sudo apt update
 sudo apt install python3-venv
+```
+
+## Test Calls
+
+```
+cd libs/ros2bot_master_lib
+
+python3 test_master_lib.py get_version
+python3 test_master_lib.py get_battery_voltage
+python3 test_master_lib.py get_motion_data
+python3 test_master_lib.py get_motor_encoder
+python3 test_master_lib.py get_accelerometer_data
+python3 test_master_lib.py get_gyroscope_data
+python3 test_master_lib.py get_magnetometer_data
+python3 test_master_lib.py get_imu_attitude_data
 ```
 
 
